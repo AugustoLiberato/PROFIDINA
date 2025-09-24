@@ -1,2 +1,40 @@
-# PROFIDINA
-Repositório para um software que será utilizado para o gerenciamento de grupos
+# Sistema de software PROFIDINA - UDF 
+
+## ✅ Objetivo
+- Utilizar algoritmos de ordenação para organizar grupo em sala de aula
+  
+## Tecnologias 💻
+- 🔧 Vue.js 3
+- 🗄️ Node.js
+- 🐘 PostgreSQL
+- 📱 Frontend Responsivo
+  
+### **👩‍🏫 Orientadora:** Kadidja Valéria
+
+### **👥 Orientando:**
+- **Augusto Liberato Marques Ferreira** - Matrícula: 30238722 
+
+### **📅 Dinâmica dos encontros:**
+- **Presenciais as quartas-feiras
+
+## **📜 Descrição do Projeto**
+
+Este repositório contém os códigos e documentação desenvolvidos durante o TCC 2 de **PROFIDINA**,  **UDF  8° SEMESTRE 2025** no **Centro Universitário do Distrito Federal - UDF**.
+
+### **📖 Conteúdo:**
+
+#### **1. Paradigma Procedural**  
+
+
+## **⚙️ Instruções de Uso**
+
+### **Pré-requisitos**
+- No diretório backend executar o comando  node server  
+- No diretório frontend executar o comando npm run serve  
+
+1. **Clone o repositório**:
+   ```bash
+   git clone https://github.com/AugustoLiberato/PROFIDINA.git
+   
+   ```
+
