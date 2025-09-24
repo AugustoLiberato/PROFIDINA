@@ -23,7 +23,7 @@ Este repositório contém os códigos e documentação desenvolvidos durante o T
 
 ## Documentação 📄
 
-📋 [Manual Completo (PDF)](./docs/manual-profidina.pdf)
+📋 [Manual Completo (PDF)](./manual-profidina.pdf)
 
 ## **⚙️ Instruções de Uso**
 
