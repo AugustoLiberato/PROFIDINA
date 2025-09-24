@@ -20,7 +20,11 @@
 ## **📜 Descrição do Projeto**
 
 Este repositório contém os códigos e documentação desenvolvidos durante o TCC 2 de **PROFIDINA**,  **UDF  8° SEMESTRE 2025** no **Centro Universitário do Distrito Federal - UDF**.
- 
+
+## Documentação 📄
+
+📋 [Manual Completo (PDF)](./docs/manual-profidina.pdf)
+
 ## **⚙️ Instruções de Uso**
 
 ### **Pré-requisitos**
