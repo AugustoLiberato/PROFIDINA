@@ -4,7 +4,7 @@
 - Utilizar algoritmos de ordenação para organizar grupo em sala de aula
   
 ## Tecnologias 💻
-- 🔧 Vue.js 3
+-  Vue.js 3
 - 🗄️ Node.js
 - 🐘 PostgreSQL
 - 📱 Frontend Responsivo
