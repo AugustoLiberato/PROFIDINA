@@ -3,11 +3,11 @@
 ## ✅ Objetivo
 - Utilizar algoritmos de ordenação para organizar grupo em sala de aula
   
-## Tecnologias 💻
+## Tecnologias 
 -  Vue.js 3
-- 🗄️ Node.js
-- 🐘 PostgreSQL
-- 📱 Frontend Responsivo
+-  Node.js
+-  PostgreSQL
+-  Frontend Responsivo
   
 ### **👩‍🏫 Orientadora:** Kadidja Valéria
 
