@@ -15,12 +15,12 @@
 ### ** Orientadora:** KADIDJA VALÉRIA REGINALDO DE OLIVEIRA
 
 ###  Orientando:
-- **Augusto Liberato Marques Ferreira** - Matrícula: 30238722 
+- Augusto Liberato Marques Ferreira - Matrícula: 30238722 
 
-### ** Dinâmica dos encontros:**
+###  Dinâmica dos encontros:
 - **Presenciais as quartas-feiras
 
-## ** Descrição do Projeto**
+## Descrição do Projeto
 
 Este repositório contém os códigos e documentação desenvolvidos durante o TCC 2 de **PROFIDINA**,  **UDF  8° SEMESTRE 2025** no **Centro Universitário do Distrito Federal - UDF**.
 
@@ -28,13 +28,13 @@ Este repositório contém os códigos e documentação desenvolvidos durante o T
 
 📋 [Manual Completo (PDF)](./manual-profidina.pdf)
 
-## ** Instruções de Uso**
+##  Instruções de Uso
 
-### **Pré-requisitos**
+### Pré-requisitos
 - No diretório backend executar o comando  node server  
 - No diretório frontend executar o comando npm run serve  
 
-1. **Clone o repositório**:
+1. Clone o repositório:
    ```bash
    git clone https://github.com/AugustoLiberato/PROFIDINA.git
    
