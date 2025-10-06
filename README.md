@@ -1,10 +1,10 @@
 # Sistema de software PROFIDINA - UDF 
 
 ## Apresentação
-O PRIDINA tem como objetivo assumir a responsabiliade de organização dos alunos em grupos na sala de aula, nele, o próprio aluno colocará seu nome o ou rgm e entrará em uma das salas criada pelo professor. De forma randômica o software PROFIDINA sorteará os aluno em grupos, o professor poderá colocar alguns critérios como, alunos que estão cursando a matéria como optativa estarem no mesmo grupo
+O PROFIDINA tem como objetivo auxiliar o professor na organização de grupos de alunos, nele, o próprio aluno colocará seu nome o ou rgm e entrará em uma das salas criada pelo professor. De forma randômica o software PROFIDINA sorteará os aluno em grupos, o professor poderá colocar alguns critérios como, alunos que estão cursando a matéria como optativa estarem no mesmo grupo
 
 ##  Objetivo
-- Utilizar algoritmos de ordenação para organizar grupo em sala de aula
+- Utilizar algoritmos de ordenação para organizar grupos em sala de aula
   
 ## Tecnologias 
 -  Vue.js 3
@@ -20,7 +20,7 @@ O PRIDINA tem como objetivo assumir a responsabiliade de organização dos aluno
 ###  Dinâmica dos encontros:
 - Presenciais as quartas-feiras
 
-## Descrição do Projeto
+## Descrição do repositório
 
 Este repositório contém os códigos e documentação desenvolvidos durante o TCC 2 de **PROFIDINA**,  **UDF  8° SEMESTRE 2025** no **Centro Universitário do Distrito Federal - UDF**.
 
