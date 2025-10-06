@@ -18,7 +18,7 @@
 - Augusto Liberato Marques Ferreira - Matrícula: 30238722 
 
 ###  Dinâmica dos encontros:
-- **Presenciais as quartas-feiras
+- Presenciais as quartas-feiras
 
 ## Descrição do Projeto
 
