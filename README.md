@@ -9,9 +9,9 @@
 -  PostgreSQL
 -  Frontend Responsivo
   
-### **👩‍🏫 Orientadora:** Kadidja Valéria
+### ** Orientadora:** KADIDJA VALÉRIA REGINALDO DE OLIVEIRA
 
-### **👥 Orientando:**
+### ** Orientando:**
 - **Augusto Liberato Marques Ferreira** - Matrícula: 30238722 
 
 ### **📅 Dinâmica dos encontros:**
