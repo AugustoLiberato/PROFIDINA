@@ -6,7 +6,7 @@ O PROFIDINA tem como objetivo auxiliar o professor na formação de grupos de al
 ##  Como será a organização
 Utilização de algoritmos de ordenação para organizar grupos em sala de aula.
 
-O próprio aluno informará seu nome ou RGM e ingressará em uma das salas criadas pelo professor. De forma randômica, o software PROFIDINA sorteará os alunos em grupos.
+O próprio aluno informa seu nome ou RGM e ingressa em uma das salas criadas pelo professor. De forma randômica, o software PROFIDINA faz o sorteio dos alunos em grupos.
 
 O professor poderá definir alguns critérios, como, por exemplo, agrupar alunos que estejam cursando a disciplina como optativa.
   
