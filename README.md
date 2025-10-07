@@ -1,10 +1,11 @@
 # Sistema de software PROFIDINA - UDF 
 
 ## Apresentação
-O PROFIDINA tem como objetivo auxiliar o professor na organização de grupos de alunos, nele, o próprio aluno colocará seu nome o ou rgm e entrará em uma das salas criada pelo professor. De forma randômica o software PROFIDINA sorteará os aluno em grupos, o professor poderá colocar alguns critérios como, alunos que estão cursando a matéria como optativa estarem no mesmo grupo
+O PROFIDINA tem como objetivo auxiliar o professor na formação de grupos de alunos. O professor poderá ter diversas turmas, cada uma com vários grupos de alunos
 
 ##  Objetivo
 - Utilizar algoritmos de ordenação para organizar grupos em sala de aula
+- O próprio aluno colocará seu nome o ou rgm e entrará em uma das salas criada pelo professor. De forma randômica o software PROFIDINA sorteará os aluno em grupos, o professor poderá colocar alguns critérios como, alunos que estão cursando a matéria como optativa estarem no mesmo grupo
   
 ## Tecnologias 
 -  Vue.js 3
