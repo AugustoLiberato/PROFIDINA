@@ -26,7 +26,7 @@ O professor poderá definir alguns critérios, como, por exemplo, agrupar alunos
 
 ## Descrição do repositório
 
-Este repositório contém os códigos e documentação desenvolvidos durante o TCC 2 de **PROFIDINA**,  **UDF  8° SEMESTRE 2025** no **Centro Universitário do Distrito Federal - UDF**.
+Este repositório contém os códigos e a documentação desenvolvidos durante o TCC 2 — PROFIDINA, do 8º semestre de 2025, no Centro Universitário do Distrito Federal (UDF).
 
 ## Documentação 
 
