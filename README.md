@@ -1,4 +1,4 @@
-# Sistema de software PROFIDINA - UDF 
+# Sistema de Software PROFIDINA - UDF
 
 ## Apresentação
 O PROFIDINA tem como objetivo auxiliar o professor na formação de grupos de alunos. O professor poderá ter diversas turmas, e cada uma delas poderá conter vários grupos de estudantes.
