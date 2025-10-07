@@ -22,7 +22,7 @@ O professor poderá definir alguns critérios, como, por exemplo, agrupar alunos
 - Augusto Liberato Marques Ferreira - Matrícula: 30238722 
 
 ###  Dinâmica dos encontros:
-- Presenciais as quartas-feiras
+- Presenciais, às quartas-feiras.
 
 ## Descrição do repositório
 
