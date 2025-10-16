@@ -11,7 +11,7 @@ O próprio aluno informa seu nome ou RGM e ingressa em uma das salas criadas pel
 ## Tecnologias Utilizadas
 - Frontend: Vue.js, HTML, CSS, JavaScript
 
-- Backend: Node.js
+- Backend: Node.js, JavaScript
 
 - Banco de Dados: PostgreSQL
 
