@@ -1,7 +1,7 @@
 <template>
   <div class="salas-container">
     <div class="header">
-      <h2>Minhas Salas</h2>
+      <h2>Minhasss Salas</h2>
       <button @click="mostrarFormCriar = !mostrarFormCriar" class="btn-primary">
         {{ mostrarFormCriar ? 'Cancelar' : '+ Nova Sala' }}
       </button>

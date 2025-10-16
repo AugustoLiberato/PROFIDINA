@@ -3,16 +3,10 @@ import store from "@/store";
 
 
 const routes = [
-  // {
-  //   path: "/",
-  //   name: "Home",
-  //   // component: Home,
-  //   component: () => import('@/features/conect/views/Home.vue'),
-  // },
   {
     path: "/",
     name: "SignIn",
-    component:() =>import ('@/features/conect/components/SignIn.vue'), 
+    component:() =>import ('@/features/conectarUsuario/components/SignIn.vue'), 
     beforeEnter: (to, from, next) => {
       store.state.user.isLoggedIn ? next({ name: "UserAccount" }) : next();
     },
@@ -20,7 +14,7 @@ const routes = [
   {
     path: "/signup",
     name: "SignUp",
-    component: () => import( '@/features/conect/components/SignUp.vue'),
+    component: () => import( '@/features/conectarUsuario/components/SignUp.vue'),
     beforeEnter: (to, from, next) => {
       store.state.user.isLoggedIn ? next({ name: "UserAccount" }) : next();
     },
@@ -35,7 +29,7 @@ const routes = [
   },
   {
     path: "/:pathMatch(.*)*",
-    component: () => import( '@/features/conect/views/NotFound.vue'),
+    component: () => import( '@/features/conectarUsuario/views/NotFound.vue'),
   },
 ];
 

@@ -7,7 +7,7 @@
             <h1> Cadastrar </h1>
           </div>
           <div v-if="type === 'signin'" class='label-float'>
-            <h1> Entrar </h1>
+            <h1> Profidina Ágil  </h1>
           </div>
          
           <div v-if="type === 'signup'" class='label-float'>
