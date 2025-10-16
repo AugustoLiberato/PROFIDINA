@@ -1,33 +1,44 @@
-# Sistema de software PROFIDINA - UDF 
+# Sistema de Software PROFIDINA - UDF
 
-## ✅ Objetivo
-- Utilizar algoritmos de ordenação para organizar grupo em sala de aula
+## Apresentação
+O PROFIDINA tem como objetivo auxiliar o professor na formação de grupos de alunos. O professor poderá ter diversas turmas, e cada uma delas poderá conter vários grupos de estudantes.
+
+##  Como será a organização
+Utilização de algoritmos de ordenação para organizar grupos em sala de aula.
+
+O próprio aluno informa seu nome ou RGM e ingressa em uma das salas criadas pelo professor. De forma randômica, o software PROFIDINA faz o sorteio dos alunos em grupos.
+
+O professor poderá definir alguns critérios, como, por exemplo, agrupar alunos que estejam cursando a disciplina como optativa.
   
-## Tecnologias 💻
-- 🔧 Vue.js 3
-- 🗄️ Node.js
-- 🐘 PostgreSQL
-- 📱 Frontend Responsivo
+## Tecnologias 
+-  Vue.js 3
+-  Node.js
+-  PostgreSQL
+-  Frontend Responsivo
   
-### **👩‍🏫 Orientadora:** Kadidja Valéria
+### ** Orientadora:** KADIDJA VALÉRIA REGINALDO DE OLIVEIRA
 
-### **👥 Orientando:**
-- **Augusto Liberato Marques Ferreira** - Matrícula: 30238722 
+###  Orientando:
+- Augusto Liberato Marques Ferreira - Matrícula: 30238722 
 
-### **📅 Dinâmica dos encontros:**
-- **Presenciais as quartas-feiras
+###  Dinâmica dos encontros:
+- Presenciais, às quartas-feiras.
 
-## **📜 Descrição do Projeto**
+## Descrição do repositório
 
-Este repositório contém os códigos e documentação desenvolvidos durante o TCC 2 de **PROFIDINA**,  **UDF  8° SEMESTRE 2025** no **Centro Universitário do Distrito Federal - UDF**.
- 
-## **⚙️ Instruções de Uso**
+Este repositório contém os códigos e a documentação desenvolvidos durante o TCC 2 — PROFIDINA, do 8º semestre de 2025, no Centro Universitário do Distrito Federal (UDF).
 
-### **Pré-requisitos**
+## Documentação 
+
+📋 [Manual Completo (PDF)](./manual-profidina.pdf)
+
+##  Instruções de Uso
+
+### Pré-requisitos
 - No diretório backend executar o comando  node server  
 - No diretório frontend executar o comando npm run serve  
 
-1. **Clone o repositório**:
+1. Clone o repositório:
    ```bash
    git clone https://github.com/AugustoLiberato/PROFIDINA.git
    
