@@ -7,6 +7,15 @@ PROFIDINA Ágil é uma plataforma de gerenciamento de equipes voltada para ambie
 Utilizar lógica de formação de grupos baseada em algoritmos clássicos de ordenação, aplicados conforme o critério selecionado pelo professor
 
 O próprio aluno informa seu nome ou RGM e ingressa em uma das salas criadas pelo professor. De forma randômica, o software PROFIDINA faz o sorteio dos alunos em grupos.
+
+## Funcionalidades do Sistema
+Cadastro e login de professores e alunos
+
+Criação de salas virtuais com QR Code
+
+Formação automática de grupos com base em critérios selecionados
+
+Visualização e edição de grupos por parte do professor
   
 ## Tecnologias Utilizadas
 - Frontend: Vue.js, HTML, CSS, JavaScript
