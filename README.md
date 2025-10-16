@@ -8,11 +8,14 @@ Utilizar lógica de formação de grupos baseada em algoritmos clássicos de ord
 
 O próprio aluno informa seu nome ou RGM e ingressa em uma das salas criadas pelo professor. De forma randômica, o software PROFIDINA faz o sorteio dos alunos em grupos.
   
-## Tecnologias 
--  Vue.js 3
--  Node.js
--  PostgreSQL
--  Frontend Responsivo
+## Tecnologias Utilizadas
+- Frontend: Vue.js, HTML, CSS, JavaScript
+
+- Backend: Node.js
+
+- Banco de Dados: PostgreSQL
+
+- IDE: Visual Studio Code
   
 ### ** Orientadora:** KADIDJA VALÉRIA REGINALDO DE OLIVEIRA
 
