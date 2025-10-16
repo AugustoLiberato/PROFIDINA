@@ -6,7 +6,7 @@
 
 <script>
 import axios from "axios";
-import SignForm from "@/features/conect/views/SignForm.vue";
+import SignForm from "@/features/conectarUsuario/views/SignForm.vue";
 import router from "@/router";
 import { ref } from "vue";
 
