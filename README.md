@@ -26,9 +26,6 @@ Visualização e edição de grupos por parte do professor
 ###  Orientando:
 - Augusto Liberato Marques Ferreira - Matrícula: 30238722 
 
-###  Dinâmica dos encontros:
-- Presenciais, às quartas-feiras.
-
 ## Descrição do repositório
 
 Este repositório contém os códigos e a documentação desenvolvidos durante o TCC 2 — PROFIDINA, do 8º semestre de 2025, no Centro Universitário do Distrito Federal (UDF).
