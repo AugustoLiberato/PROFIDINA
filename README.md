@@ -1,28 +1,30 @@
-# Sistema de Software PROFIDINA - UDF
+# Sistema de Software  PROFIDINA Ágil - UDF
 
 ## Apresentação
-O PROFIDINA tem como objetivo auxiliar o professor na formação de grupos de alunos. O professor poderá ter diversas turmas, e cada uma delas poderá conter vários grupos de estudantes.
+  PROFIDINA Ágil é uma plataforma de gerenciamento de equipes voltada para ambientes educacionais que adotam metodologias ativas e ágeis, como o Team-Based Learning (TBL). A solução objetiva formar grupos de forma inteligente e adaptativa, considerando critérios como (desempenho, perfil comportamental, turno, idade ou tempo de ingresso na instituição). Com o PROFIDINA ÁGIL busca-se utilizar lógica de formação de grupos baseada em algoritmos clássicos de ordenação, aplicados conforme o critério selecionado pelo professor.
 
-##  Como será a organização
-Utilização de algoritmos de ordenação para organizar grupos em sala de aula.
+## Funcionalidades do Sistema
+Cadastro e login de professores e alunos
 
-O próprio aluno informa seu nome ou RGM e ingressa em uma das salas criadas pelo professor. De forma randômica, o software PROFIDINA faz o sorteio dos alunos em grupos.
+Criação de salas virtuais com QR Code
 
-O professor poderá definir alguns critérios, como, por exemplo, agrupar alunos que estejam cursando a disciplina como optativa.
+Formação automática de grupos com base em critérios selecionados
+
+Visualização e edição de grupos por parte do professor
   
-## Tecnologias 
--  Vue.js 3
--  Node.js
--  PostgreSQL
--  Frontend Responsivo
+## Tecnologias Utilizadas
+- Frontend: Vue.js, HTML, CSS, JavaScript
+
+- Backend: Node.js, JavaScript
+
+- Banco de Dados: PostgreSQL
+
+- IDE: Visual Studio Code
   
 ### ** Orientadora:** KADIDJA VALÉRIA REGINALDO DE OLIVEIRA
 
 ###  Orientando:
 - Augusto Liberato Marques Ferreira - Matrícula: 30238722 
-
-###  Dinâmica dos encontros:
-- Presenciais, às quartas-feiras.
 
 ## Descrição do repositório
 
