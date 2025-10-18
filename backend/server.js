@@ -67,8 +67,8 @@ app.post('/create-tables', async (req, res) => {
   }
 });
 
-// 🔐 SIGNUP com hash da senha
-app.post('/signup', async (req, res) => {
+// 🔐 cpoCadastroUsuario com hash da senha
+app.post('/cpoCadastroUsuario', async (req, res) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
@@ -107,13 +107,13 @@ app.post('/signup', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('💥 Erro no signup:', error);
+    console.error('💥 Erro no cpoCadastroUsuario:', error);
     res.status(500).json({ error: 'Erro ao cadastrar usuário' });
   }
 });
 
-// 🔐 SIGNIN com verificação segura
-app.post('/signin', async (req, res) => {
+// 🔐 cpoConectarUsuario com verificação segura
+app.post('/cpoConectarUsuario', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -155,7 +155,7 @@ app.post('/signin', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('💥 Erro no signin:', error);
+    console.error('💥 Erro no cpoConectarUsuario:', error);
     res.status(500).json({ error: 'Erro no login' });
   }
 });
