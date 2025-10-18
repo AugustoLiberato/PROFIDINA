@@ -3,14 +3,14 @@
     <form @submit.prevent="onSubmit()">
       <div class='container'>
         <div class='card'>
-          <div v-if="type === 'signup'" class='label-float'>
+          <div v-if="type === 'cpoCadastroUsuario'" class='label-float'>
             <h1> Cadastrar </h1>
           </div>
-          <div v-if="type === 'signin'" class='label-float'>
+          <div v-if="type === 'cpoConectarUsuario'" class='label-float'>
             <h1> Profidina Ágil  </h1>
           </div>
          
-          <div v-if="type === 'signup'" class='label-float'>
+          <div v-if="type === 'cpoCadastroUsuario'" class='label-float'>
             <input type="text" name="username" placeholder="" v-model="username"  />
             <label for="username">Usuário</label>
           </div>
@@ -41,12 +41,12 @@
             <button type="submit">{{ btnText }}</button>
           </div>
 
-          <div v-if="type === 'signin'">
+          <div v-if="type === 'cpoConectarUsuario'">
             <div class='justify-center'>
               <hr>  
             </div>
             <p> Não tem uma conta?
-              <router-link to="/signup">Cadastre-se</router-link>
+              <router-link to="/cpoCadastroUsuario">Cadastre-se</router-link>
             </p>
           </div>
         </div>
@@ -74,12 +74,12 @@ export default {
     const error = ref(false);
     const showPassword = ref(false);
 
-    // Função para executar login diretamente (APENAS para signin)
+    // Função para executar login diretamente (APENAS para cpoConectarUsuario)
     const executarLoginDireto = async (userData) => {
       try {
         console.log("🚀 Fazendo login direto...");
         
-        const response = await axios.post("http://localhost:3000/signin", userData);
+        const response = await axios.post("http://localhost:3000/cpoConectarUsuario", userData);
         console.log("✅ Login OK:", response.data);
 
      if (response.data && response.data.success && response.data.user) {
@@ -93,7 +93,7 @@ export default {
 
         alert(response.data.message || "Login realizado com sucesso!");
         
-        // Força recarregamento da página na rota UserAccount
+        // Força recarregamento da página na rota TelaSalas
         window.location.href = '/account';
       
     }else {
@@ -112,7 +112,7 @@ export default {
       let userData = {};
       
       switch (props.type) {
-        case "signup":
+        case "cpoCadastroUsuario":
           error.value = !(username.value && password.value && email.value);
           userData = {
             username: username.value,
@@ -121,7 +121,7 @@ export default {
           };
           break;
           
-        case "signin":
+        case "cpoConectarUsuario":
           error.value = !(email.value && password.value);
           userData = {
             email: email.value,
@@ -137,11 +137,11 @@ export default {
       if (!error.value) {
         console.log("🔹 Dados válidos:", userData);
         
-        if (props.type === "signin") {
+        if (props.type === "cpoConectarUsuario") {
           // Para login, executa direto
           executarLoginDireto(userData);
         } else {
-          // Para signup, usa o emit normal (que funciona)
+          // Para cpoCadastroUsuario, usa o emit normal (que funciona)
           emit("onSubmit", userData);
         }
       } else {
@@ -156,7 +156,7 @@ export default {
       email,
       showPassword,
       onSubmit,
-      btnText: computed(() => (props.type === "signup" ? "Cadastrar" : "Entrar")),
+      btnText: computed(() => (props.type === "cpoCadastroUsuario" ? "Cadastrar" : "Entrar")),
     };
   },
 };

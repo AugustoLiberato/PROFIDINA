@@ -1,6 +1,6 @@
 <template>
   <main>
-    <SignForm type="signup" :errorMsg="errorSignUp" @onSubmit="cadastrarUsuario" />
+    <SignForm type="cpoCadastroUsuario" :errorMsg="errorSignUp" @onSubmit="cadastrarUsuario" />
   </main>
 </template>
 
@@ -20,10 +20,10 @@ export default {
         errorSignUp.value = "";
 
         // Chamada à API para salvar no banco
-        const response = await axios.post("http://localhost:3000/signup", userData);
+        const response = await axios.post("http://localhost:3000/cpoCadastroUsuario", userData);
         
         alert(response.data.message);
-        router.push({ name: "SignIn" });
+        router.push({ name: "cpoConectarUsuario" });
       } catch (error) {
         console.error(error);
         errorSignUp.value = error.response?.data?.error || "Erro no cadastro";
