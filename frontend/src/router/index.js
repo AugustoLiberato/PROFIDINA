@@ -5,24 +5,24 @@ import store from "@/store";
 const routes = [
   {
     path: "/",
-    name: "SignIn",
-    component:() =>import ('@/features/conectarUsuario/components/SignIn.vue'), 
+    name: "cpoConectarUsuario",
+    component:() =>import ('@/features/conectarUsuario/components/cpoConectarUsuario.vue'), 
     beforeEnter: (to, from, next) => {
-      store.state.user.isLoggedIn ? next({ name: "UserAccount" }) : next();
+      store.state.user.isLoggedIn ? next({ name: "TelaSalas" }) : next();
     },
   },
   {
-    path: "/signup",
-    name: "SignUp",
-    component: () => import( '@/features/conectarUsuario/components/SignUp.vue'),
+    path: "/cpoCadastroUsuario",
+    name: "cpoCadastroUsuario",
+    component: () => import( '@/features/conectarUsuario/components/cpoCadastroUsuario.vue'),
     beforeEnter: (to, from, next) => {
-      store.state.user.isLoggedIn ? next({ name: "UserAccount" }) : next();
+      store.state.user.isLoggedIn ? next({ name: "TelaSalas" }) : next();
     },
   },
   {
     path: "/account",
-    name: "UserAccount",
-    component: () => import( '@/features/salas/UserAccount.vue'),
+    name: "TelaSalas",
+    component: () => import( '@/features/salas/viwTelaSalas.vue'),
     beforeEnter: (to, from, next) => {
       store.state.user.isLoggedIn ? next() : next({ name: "Home" });
     },

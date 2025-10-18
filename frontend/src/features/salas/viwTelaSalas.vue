@@ -84,7 +84,7 @@ export default {
     const logout = () => {
       store.dispatch("user/logout");
       localStorage.clear();
-      router.push({ name: "SignIn" });
+      router.push({ name: "cpoConectarUsuario" });
     };
 
     // Funções para as ações do perfil (placeholder)

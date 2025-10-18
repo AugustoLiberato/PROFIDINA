@@ -1,6 +1,6 @@
 <template>
   <main>
-    <SignForm type="signin" :errorMsg="errorSignIn" @onSubmit="redirectToAccount" />
+    <SignForm type="cpoConectarUsuario" :errorMsg="errorSignIn" @onSubmit="redirectToAccount" />
   </main>
 </template>
 
@@ -19,7 +19,7 @@ export default {
 
     const redirectToAccount = async (user) => {
       try {
-        const response = await axios.post("http://localhost:3000/signin", user);
+        const response = await axios.post("http://localhost:3000/cpoConectarUsuario", user);
 
         // se o backend retornar sucesso:
         if (response.data.success) {
@@ -34,7 +34,7 @@ export default {
           
           store.dispatch("user/authentication", userData);
           
-          router.push({ name: "UserAccount" });
+          router.push({ name: "TelaSalas" });
         } else {
           errorSignIn.value = "E-mail ou Senha incorretos!";
         }
