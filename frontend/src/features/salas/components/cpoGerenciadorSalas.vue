@@ -1,7 +1,7 @@
 <template>
   <div class="salas-container">
     <div class="header">
-      <h2>Minhasss Salas</h2>
+      <h2>Minhas Salas</h2>
       <button @click="mostrarFormCriar = !mostrarFormCriar" class="btn-primary">
         {{ mostrarFormCriar ? 'Cancelar' : '+ Nova Sala' }}
       </button>
@@ -79,8 +79,8 @@
         </div>
 
         <div class="sala-actions-bottom">
-          <button @click="verAlunos(sala)" class="btn-secondary">
-            Ver Alunos
+          <button @click="entrarNaSala(sala)" class="btn-secondary">
+            Entra na sala
           </button>
           <button @click="gerarQRCode(sala)" class="btn-secondary">
             QR Code
@@ -130,12 +130,14 @@
 <script>
 import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router'; // ✅ IMPORTAR O ROUTER
 import axios from 'axios';
 
 export default {
   name: 'GerenciadorSalas',
   setup() {
     const store = useStore();
+    const router = useRouter(); // ✅ USAR O ROUTER
     const salas = ref([]);
     const mostrarFormCriar = ref(false);
     const salaEditando = ref(null);
@@ -147,10 +149,7 @@ export default {
       descricao: ''
     });
 
-    // Computed para pegar dados do usuário logado
-   const usuario = computed(() => store.state.user);
-
-    //const usuario = computed(() => store.state);
+    const usuario = computed(() => store.state.user);
 
     // Função para mostrar mensagem temporária
     const mostrarMensagem = (texto, tipo = 'success') => {
@@ -184,10 +183,6 @@ export default {
     const criarSala = async () => {
       if (!novaSala.value.nome) return;
 
-      console.log("🔍 Estado do usuário:", usuario.value);
-      console.log("🔍 ID do usuário:", usuario.value.id);
-      console.log("🔍 Usuário logado?", usuario.value.isLoggedIn);
-
       if (!usuario.value.id) {
         mostrarMensagem('Erro: ID do usuário não encontrado. Faça login novamente.', 'error');
         return;
@@ -200,23 +195,16 @@ export default {
           professor_id: usuario.value.id
         };
 
-        console.log("📤 Dados sendo enviados:", dadosSala);
-
         const response = await axios.post('http://localhost:3000/salas', dadosSala);
         
         if (response.data.success) {
           mostrarMensagem('Sala criada com sucesso!');
-          
-          // Resetar formulário
           novaSala.value = { nome: '', descricao: '' };
           mostrarFormCriar.value = false;
-          
-          // Recarregar lista de salas
           await carregarSalas();
         }
       } catch (error) {
-        console.error('❌ Erro ao criar sala:', error);
-        console.error('❌ Resposta do servidor:', error.response?.data);
+        console.error('Erro ao criar sala:', error);
         mostrarMensagem(
           error.response?.data?.error || 'Erro ao criar sala', 
           'error'
@@ -299,9 +287,12 @@ export default {
       return new Date(dataString).toLocaleDateString('pt-BR');
     };
 
-    const verAlunos = (sala) => {
-      // TODO: Implementar modal ou página para ver alunos
-      alert(`Ver alunos da sala: ${sala.nome}`);
+    // ✅ FUNÇÃO CORRIGIDA PARA NAVEGAR PARA A TELA DE ORGANIZAÇÃO
+    const entrarNaSala = (sala) => {
+      router.push({ 
+        name: 'OrganizarSala',
+        params: { id: sala.id }
+      });
     };
 
     const gerarQRCode = (sala) => {
@@ -309,7 +300,6 @@ export default {
       alert(`QR Code para sala: ${sala.nome}\nCódigo: ${sala.codigo_sala}`);
     };
 
-    // Carregar salas quando o componente for montado
     onMounted(() => {
       carregarSalas();
     });
@@ -328,7 +318,7 @@ export default {
       excluirSala,
       copiarCodigo,
       formatarData,
-      verAlunos,
+      entrarNaSala, // ✅ FUNÇÃO CORRIGIDA
       gerarQRCode,
       carregarSalas
     };
@@ -509,7 +499,6 @@ $white: #fff;
   justify-content: flex-end;
 }
 
-// Botões
 .btn-primary, .btn-secondary, .btn-edit, .btn-delete, .btn-copy {
   padding: 8px 16px;
   border: none;
@@ -577,7 +566,6 @@ $white: #fff;
   }
 }
 
-// Modal
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -614,7 +602,6 @@ $white: #fff;
   margin-top: 20px;
 }
 
-// Responsivo
 @media (max-width: 768px) {
   .salas-grid {
     grid-template-columns: 1fr;
@@ -640,4 +627,3 @@ $white: #fff;
   }
 }
 </style>
-

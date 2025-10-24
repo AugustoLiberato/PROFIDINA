@@ -1,6 +1,6 @@
 <template>
  <router-view />
- <router-view name="notFound" />
+ <router-view name="viwUsuarioNaoEncontrado" />
 </template>
 
 <script>
