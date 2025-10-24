@@ -1,17 +1,17 @@
 <template>
   <main>
-    <SignForm type="cpoCadastroUsuario" :errorMsg="errorSignUp" @onSubmit="cadastrarUsuario" />
+    <viwCadastrarConectarUsuario type="cpoCadastroUsuario" :errorMsg="errorSignUp" @onSubmit="cadastrarUsuario" />
   </main>
 </template>
 
 <script>
 import axios from "axios";
-import SignForm from "@/features/conectarUsuario/views/SignForm.vue";
+import viwCadastrarConectarUsuario from "@/features/conectarUsuario/views/viwCadastrarConectarUsuario.vue";
 import router from "@/router";
 import { ref } from "vue";
 
 export default {
-  components: { SignForm },
+  components: { viwCadastrarConectarUsuario },
   setup() {
     const errorSignUp = ref("");
 

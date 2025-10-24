@@ -1,18 +1,18 @@
 <template>
   <main>
-    <SignForm type="cpoConectarUsuario" :errorMsg="errorSignIn" @onSubmit="redirectToAccount" />
+    <viwCadastrarConectarUsuario type="cpoConectarUsuario" :errorMsg="errorSignIn" @onSubmit="redirectToAccount" />
   </main>
 </template>
 
 <script>
-import SignForm from "@/features/conectarUsuario/views/SignForm.vue";
+import viwCadastrarConectarUsuario from "@/features/conectarUsuario/views/viwCadastrarConectarUsuario.vue";
 import router from "@/router";
 import { ref } from "vue";
 import { useStore } from "vuex";
 import axios from "axios";
 
 export default {
-  components: { SignForm },
+  components: { viwCadastrarConectarUsuario },
   setup() {
     const store = useStore();
     const errorSignIn = ref("");
@@ -23,7 +23,7 @@ export default {
 
         // se o backend retornar sucesso:
         if (response.data.success) {
-          console.log("✅ Login bem-sucedido:", response.data.user);
+          console.log(" Login bem-sucedido:", response.data.user);
           
           // Salvar dados completos do usuário no Vuex
           const userData = {
@@ -39,7 +39,7 @@ export default {
           errorSignIn.value = "E-mail ou Senha incorretos!";
         }
       } catch (err) {
-        console.error("❌ Erro no login:", err);
+        console.error(" Erro no login:", err);
         
         if (err.response && err.response.data && err.response.data.error) {
           errorSignIn.value = err.response.data.error;

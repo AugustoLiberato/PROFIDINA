@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import store from "@/store";
-
+import GerenciadorSalas from '@/features/salas/components/cpoGerenciadorSalas.vue'; // Sua tela principal
+import cpoOrganizarSala from '@/features/salas/components/cpoOrganizarSala.vue'; // Sua tela de organizar
 
 const routes = [
   {
@@ -19,6 +20,13 @@ const routes = [
       store.state.user.isLoggedIn ? next({ name: "TelaSalas" }) : next();
     },
   },
+   
+  {
+    path: "/entrar-sala",
+    name: "EntrarSala",
+    component: () => import('@/features/salas/components/cpoTelaAluno.vue'),
+    
+  },
   {
     path: "/account",
     name: "TelaSalas",
@@ -28,8 +36,17 @@ const routes = [
     },
   },
   {
+    path: "/sala/:id/organizar",
+    name: "OrganizarSala",
+    component: () => import('@/features/salas/components/cpoOrganizarSala.vue'),
+    props: true, // Permite passar o ID como prop
+    beforeEnter: (to, from, next) => {
+      store.state.user.isLoggedIn ? next() : next({ name: "cpoConectarUsuario" });
+    },
+  },
+  {
     path: "/:pathMatch(.*)*",
-    component: () => import( '@/features/conectarUsuario/views/NotFound.vue'),
+    component: () => import( '@/features/conectarUsuario/views/viwUsuarioNaoEncontrado.vue'),
   },
 ];
 

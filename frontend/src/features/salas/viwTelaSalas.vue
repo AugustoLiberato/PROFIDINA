@@ -3,7 +3,7 @@
     <!-- Header do usuário -->
     <header class="user-header">
       <div class="user-info">
-        <h1>Olá, {{ name }}</h1>
+        <h1>Olá, Bem vindo: {{ name }}</h1>
         <p>{{ email }}</p>
       </div>
       <button @click="logout()" class="btn-logout">Sair</button>
@@ -122,7 +122,7 @@ $dark: #343a40;
 
 .container-app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0029e0 0%, #00ddff 100%);
   padding: 20px;
 }
 
@@ -152,8 +152,8 @@ $dark: #343a40;
   }
 
   .btn-logout {
-    background: rgba(220, 53, 69, 0.2);
-    border: 2px solid rgba(220, 53, 69, 0.5);
+    background: rgb(0, 17, 143);
+    border: 2px solid rgb(0, 195, 255);
     color: $white;
     padding: 10px 20px;
     border-radius: 8px;
@@ -162,16 +162,19 @@ $dark: #343a40;
     transition: all 0.3s ease;
 
     &:hover {
-      background: rgba(220, 53, 69, 0.3);
-      border-color: rgba(220, 53, 69, 0.7);
+     // background: rgb(0, 195, 255);
+       background: rgb(0, 40, 52);
+      border-color: rgba(0, 9, 73, 0.926);
       transform: translateY(-2px);
+      color: $primary;
     }
   }
 }
 
 .tabs-nav {
   display: flex;
-  background: rgba(255, 255, 255, 0.1);
+ // background: rgba(255, 255, 255, 0.1);
+   background: rgba(0, 17, 144, 0.926);
   backdrop-filter: blur(10px);
   border-radius: 12px;
   padding: 8px;
@@ -183,7 +186,7 @@ $dark: #343a40;
   flex: 1;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.7);
+ // color: rgba(255, 255, 255, 0.7);
   padding: 12px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -193,7 +196,7 @@ $dark: #343a40;
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.9);
+    color: rgb(0, 195, 255);
   }
 
   &.active {
