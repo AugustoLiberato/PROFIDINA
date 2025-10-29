@@ -3,7 +3,7 @@
     <!-- Header do usuário -->
     <header class="user-header">
       <div class="user-info">
-        <h1>Olá, Bem vindo: {{ name }}</h1>
+        <h1>Olá {{ name }}</h1>
         <p>{{ email }}</p>
       </div>
       <button @click="logout()" class="btn-logout">Sair</button>
