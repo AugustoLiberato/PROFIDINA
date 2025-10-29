@@ -1,44 +1,50 @@
 <template>
-  <div class="organizacao-container">
-    <!-- Loading inicial -->
+  <div class="tela-organizacao">
     <div v-if="carregandoSala" class="loading-full">
       <p>⏳ Carregando sala...</p>
     </div>
 
     <template v-else-if="sala">
-      <div class="header">
-        <button @click="voltarParaSalas" class="btn-voltar">
-          ← Voltar
-        </button>
-        <h1>{{ sala.nome }}</h1>
-        <p class="codigo-sala">Código: {{ sala.codigo_sala }}</p>
+      <div class="header-fixo">
+        <div class="info-sala">
+          <button @click="voltarParaSalas" class="btn btn-voltar">
+            ← Voltar
+          </button>
+          <h2>{{ sala.nome }}</h2> </div>
+
+        <div>
+          <p class="codigo-sala">Código: {{ sala.codigo_sala }}</p>
+          <span class="badge-alunos" v-if="!carregandoAlunos">{{ alunos.length }} alunos</span>
+        </div>
       </div>
 
       <div class="config-section">
-        <div class="config-group">
-          <label>Número de alunos por grupo:</label>
-          <input 
-            type="number" 
-            v-model.number="alunosPorGrupo" 
-            min="2" 
-            max="10"
-            class="input-numero"
-          />
-        </div>
+        <div class="config-row">
+          <div class="config-item">
+            <label>Número de alunos por grupo:</label>
+            <input 
+              type="number" 
+              v-model.number="alunosPorGrupo" 
+              min="2" 
+              max="10"
+              class="input-numero"
+            />
+          </div>
 
-        <div class="config-group">
-          <label>Algoritmo de ordenação:</label>
-          <select v-model="algoritmoSelecionado" class="select-algoritmo">
-            <option value="bubble">Bubble Sort</option>
-            <option value="quick">Quick Sort</option>
-            <option value="merge">Merge Sort</option>
-            <option value="insertion">Insertion Sort</option>
-          </select>
-        </div>
+          <div class="config-item">
+            <label>Algoritmo de ordenação:</label>
+            <select v-model="algoritmoSelecionado" class="select-algoritmo">
+              <option value="bubble">Bubble Sort</option>
+              <option value="quick">Quick Sort</option>
+              <option value="merge">Merge Sort</option>
+              <option value="insertion">Insertion Sort</option>
+            </select>
+          </div>
 
-        <button @click="organizarGrupos" class="btn-organizar" :disabled="alunos.length === 0">
-          🎲 Organizar Grupos Aleatoriamente
-        </button>
+          <button @click="organizarGrupos" class="btn btn-gerar" :disabled="alunos.length === 0">
+            🎲 Organizar Grupos Aleatoriamente
+          </button>
+        </div>
       </div>
 
       <div class="alunos-section" v-if="carregandoAlunos">
@@ -46,10 +52,9 @@
           <p>⏳ Carregando alunos...</p>
         </div>
       </div>
-
       <div class="alunos-section" v-else-if="alunos.length === 0">
-        <div class="empty-state">
-          <p>📚 Nenhum aluno na sala ainda</p>
+        <div class="vazio">
+          <div class="icone">📚</div> <p>Nenhum aluno na sala ainda</p>
           <p class="hint">Os alunos podem entrar usando o código: <strong>{{ sala.codigo_sala }}</strong></p>
         </div>
       </div>
@@ -61,32 +66,61 @@
         </div>
 
         <div class="grupos-grid">
-          <div 
-            v-for="(grupo, index) in grupos" 
+          <div
+            v-for="(grupo, index) in grupos"
             :key="index"
             class="grupo-card"
           >
             <div class="grupo-header">
               <h3>Grupo {{ index + 1 }}</h3>
-              <span class="grupo-count">{{ grupo.length }} alunos</span>
+              <span class="badge">{{ grupo.length }} alunos</span>
             </div>
-            <ul class="alunos-lista">
-              <li v-for="aluno in grupo" :key="aluno.id" class="aluno-item">
-                <span class="aluno-avatar">{{ getIniciais(aluno.nome_aluno) }}</span>
-                <span class="aluno-nome">{{ aluno.nome_aluno }}</span>
+
+            <ul class="membros-lista">
+              <li
+                v-for="aluno in grupo"
+                :key="aluno.id"
+                class="membro"
+                :class="{ 'membro-lider': lideres[index] === aluno.id }"
+              >
+                <div class="membro-info">
+                  <strong>{{ aluno.nome_aluno }}</strong>
+                  <small v-if="aluno.rgm">RGM: {{ aluno.rgm }}</small>
+                </div>
+
+                <div class="tags">
+                  <span class="tag tag-perfil">{{ getIniciais(aluno.nome_aluno) }}</span>
+
+                  <span v-if="lideres[index] === aluno.id" class="tag-lider">👑 Líder</span>
+                  <button
+                    v-else
+                    @click="definirLider(index, aluno.id)"
+                    class="btn-definir-lider"
+                    title="Tornar Líder"
+                  >
+                    👑
+                  </button>
+
+                  <button
+                    @click="iniciarExclusaoAluno(aluno)"
+                    class="btn-excluir-aluno"
+                    title="Excluir Aluno">
+                    🗑️
+                  </button>
+                </div>
               </li>
-            </ul>
+              </ul>
           </div>
         </div>
 
         <div class="acoes-finais">
-          <button @click="salvarOrganizacao" class="btn-salvar">
+          <button @click="salvarOrganizacao" class="btn btn-salvar">
             💾 Salvar Organização
           </button>
-          <button @click="exportarPDF" class="btn-exportar">
+          <button @click="exportarPDF" class="btn btn-exportar">
             📄 Exportar PDF
           </button>
-          <button @click="reorganizar" class="btn-reorganizar">
+          <button @click="reorganizar" class="btn btn-reorganizar">
             🔄 Reorganizar
           </button>
         </div>
@@ -96,21 +130,54 @@
         <h3>Alunos na sala ({{ alunos.length }})</h3>
         <div class="alunos-cards">
           <div v-for="aluno in alunos" :key="aluno.id" class="aluno-card">
-            <span class="aluno-avatar">{{ getIniciais(aluno.nome_aluno) }}</span>
-            <span class="aluno-nome">{{ aluno.nome_aluno }}</span>
+            <div class="aluno-card-info">
+              <span class="aluno-avatar">{{ getIniciais(aluno.nome_aluno) }}</span>
+              <div class="aluno-card-detalhes">
+                <span class="aluno-nome">{{ aluno.nome_aluno }}</span>
+                <small v-if="aluno.rgm" class="aluno-rgm">RGM: {{ aluno.rgm }}</small>
+              </div>
+            </div>
+            <button
+              @click="iniciarExclusaoAluno(aluno)"
+              class="btn-excluir-aluno-card"
+              title="Excluir Aluno">
+              🗑️
+            </button>
           </div>
         </div>
-      </div>
+        </div>
     </template>
 
     <div v-else class="error-state">
       <p> Erro ao carregar sala</p>
-      <button @click="voltarParaSalas" class="btn-voltar">← Voltar</button>
+      <button @click="voltarParaSalas" class="btn btn-voltar">← Voltar</button>
     </div>
+
+    <div v-if="mostrarModalExcluir" class="modal">
+      <div class="modal-box">
+        <h3>Confirmar Exclusão</h3>
+        <p>
+          Você tem certeza que deseja remover o aluno
+          <strong>{{ alunoParaExcluir?.nome_aluno }}</strong>
+          <span v-if="alunoParaExcluir?.rgm"> (RGM: {{ alunoParaExcluir.rgm }})</span>
+          da sala? Esta ação não pode ser desfeita.
+        </p>
+        <div class="modal-btns">
+          <button @click="cancelarExclusao" class="btn btn-cancel">
+            Cancelar
+          </button>
+          <button @click="confirmarExclusao" class="btn btn-danger" :disabled="iniciandoExclusao">
+            {{ iniciandoExclusao ? 'Excluindo...' : 'Excluir' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script>
+// O <script> permanece exatamente igual à versão anterior (com a lógica de exclusão)
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
@@ -122,7 +189,7 @@ export default {
     const route = useRoute();
     const router = useRouter();
     const store = useStore();
-    
+
     const sala = ref(null);
     const alunos = ref([]);
     const grupos = ref([]);
@@ -130,16 +197,18 @@ export default {
     const algoritmoSelecionado = ref('bubble');
     const carregandoSala = ref(true);
     const carregandoAlunos = ref(false);
+    const lideres = ref({});
+
+    const mostrarModalExcluir = ref(false);
+    const alunoParaExcluir = ref(null);
+    const iniciandoExclusao = ref(false);
 
     const usuario = computed(() => store.state.user);
 
-    // Carregar dados da sala
     const carregarSala = async () => {
       const salaId = route.params.id;
-      
       try {
         const response = await axios.get(`http://localhost:3000/salas/${salaId}`);
-        
         if (response.data.success) {
           sala.value = response.data.sala;
           await carregarAlunos();
@@ -153,44 +222,39 @@ export default {
       }
     };
 
-
-    // Carregar alunos do banco de dados
-const carregarAlunos = async () => {
-  if (!sala.value || !usuario.value.id) return;
-  
-  carregandoAlunos.value = true;
-  try {
-    const response = await axios.get(
-      `http://localhost:3000/salas/${sala.value.id}/alunos?professor_id=${usuario.value.id}`
-    );
-    
-    if (response.data.success) {
-      alunos.value = response.data.alunos;
-      await carregarUltimaOrganizacao();
-      
-      //  DEPOIS de carregar os alunos, carregar a última organização
-      await carregarUltimaOrganizacao();
-    } else {
-      console.error('Erro ao carregar alunos:', response.data.error);
-      alunos.value = [];
-    }
-  } catch (error) {
-    console.error('Erro ao carregar alunos:', error);
-    alunos.value = [];
-  } finally {
-    carregandoAlunos.value = false;
-  }
-};
-  // asd-------------------------------------------------------------------------------------
+    const carregarAlunos = async () => {
+      if (!sala.value || !usuario.value.id) return;
+      carregandoAlunos.value = true;
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/salas/${sala.value.id}/alunos?professor_id=${usuario.value.id}`
+        );
+        if (response.data.success) {
+          // Garante que o RGM seja tratado como string ou null
+          alunos.value = response.data.alunos.map(aluno => ({
+            ...aluno,
+            rgm: aluno.rgm ? String(aluno.rgm) : null
+          }));
+          await carregarUltimaOrganizacao();
+        } else {
+          console.error('Erro ao carregar alunos:', response.data.error);
+          alunos.value = [];
+        }
+      } catch (error) {
+        console.error('Erro ao carregar alunos:', error);
+        alunos.value = [];
+      } finally {
+        carregandoAlunos.value = false;
+      }
+    };
 
     const organizarGrupos = () => {
       if (alunos.value.length === 0) return;
-
+      lideres.value = {};
       const alunosComChave = alunos.value.map(aluno => ({
         ...aluno,
         chaveAleatoria: Math.random()
       }));
-
       let alunosOrdenados;
       switch (algoritmoSelecionado.value) {
         case 'bubble':
@@ -208,13 +272,11 @@ const carregarAlunos = async () => {
         default:
           alunosOrdenados = alunosComChave;
       }
-
       grupos.value = [];
       for (let i = 0; i < alunosOrdenados.length; i += alunosPorGrupo.value) {
         grupos.value.push(alunosOrdenados.slice(i, i + alunosPorGrupo.value));
       }
     };
-
     const bubbleSort = (arr) => {
       const n = arr.length;
       for (let i = 0; i < n - 1; i++) {
@@ -226,32 +288,24 @@ const carregarAlunos = async () => {
       }
       return arr;
     };
-
     const quickSort = (arr) => {
       if (arr.length <= 1) return arr;
-      
       const pivot = arr[Math.floor(arr.length / 2)];
       const left = arr.filter(x => x.chaveAleatoria < pivot.chaveAleatoria);
       const middle = arr.filter(x => x.chaveAleatoria === pivot.chaveAleatoria);
       const right = arr.filter(x => x.chaveAleatoria > pivot.chaveAleatoria);
-      
       return [...quickSort(left), ...middle, ...quickSort(right)];
     };
-
     const mergeSort = (arr) => {
       if (arr.length <= 1) return arr;
-
       const mid = Math.floor(arr.length / 2);
       const left = mergeSort(arr.slice(0, mid));
       const right = mergeSort(arr.slice(mid));
-
       return merge(left, right);
     };
-
     const merge = (left, right) => {
       const result = [];
       let i = 0, j = 0;
-
       while (i < left.length && j < right.length) {
         if (left[i].chaveAleatoria <= right[j].chaveAleatoria) {
           result.push(left[i++]);
@@ -259,15 +313,12 @@ const carregarAlunos = async () => {
           result.push(right[j++]);
         }
       }
-
       return [...result, ...left.slice(i), ...right.slice(j)];
     };
-
     const insertionSort = (arr) => {
       for (let i = 1; i < arr.length; i++) {
         const key = arr[i];
         let j = i - 1;
-        
         while (j >= 0 && arr[j].chaveAleatoria > key.chaveAleatoria) {
           arr[j + 1] = arr[j];
           j--;
@@ -276,7 +327,6 @@ const carregarAlunos = async () => {
       }
       return arr;
     };
-
     const getNomeAlgoritmo = () => {
       const nomes = {
         bubble: 'Bubble Sort',
@@ -286,7 +336,6 @@ const carregarAlunos = async () => {
       };
       return nomes[algoritmoSelecionado.value];
     };
-
     const getIniciais = (nome) => {
       if (!nome) return '??';
       return nome
@@ -304,13 +353,12 @@ const carregarAlunos = async () => {
           algoritmo: algoritmoSelecionado.value,
           grupos: grupos.value.map((grupo, index) => ({
             numero: index + 1,
-            alunos: grupo.map(a => a.id)
+            alunos: grupo.map(a => a.id),
+            lider_id: lideres.value[index] || null
           })),
           data: new Date().toISOString()
         };
-        
         const response = await axios.post('http://localhost:3000/organizacoes', organizacao);
-        
         if (response.data.success) {
           alert('Organização salva com sucesso!');
         }
@@ -319,52 +367,91 @@ const carregarAlunos = async () => {
         alert('Erro ao salvar organização. Tente novamente.');
       }
     };
-
     const exportarPDF = () => {
       alert('Funcionalidade de exportação em desenvolvimento');
     };
-
     const reorganizar = () => {
       grupos.value = [];
+      lideres.value = {};
       organizarGrupos();
     };
-
     const voltarParaSalas = () => {
       router.push({ name: 'TelaSalas' });
     };
+    const definirLider = (grupoIndex, alunoId) => {
+      lideres.value[grupoIndex] = alunoId;
+    };
 
-    // NOVA FUNÇÃO: Carregar última organização salva-----------------------------------------------------------
-const carregarUltimaOrganizacao = async () => {
-  if (!sala.value) return;
-
-  try {
-    const response = await axios.get(
-      `http://localhost:3000/salas/${sala.value.id}/ultima-organizacao`
-    );
-
-    if (response.data.success && response.data.organizacao) {
-      const org = response.data.organizacao;
-      
-      // Restaurar algoritmo
-      algoritmoSelecionado.value = org.algoritmo;
-      
-      // Restaurar grupos
-      if (org.grupos_json && Array.isArray(org.grupos_json)) {
-        grupos.value = org.grupos_json.map(grupo => {
-          return grupo.alunos.map(alunoId => {
-            return alunos.value.find(a => a.id === alunoId) || { 
-              id: alunoId, 
-              nome_aluno: 'Aluno não encontrado' 
-            };
-          });
-        });
+    const carregarUltimaOrganizacao = async () => {
+      if (!sala.value) return;
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/salas/${sala.value.id}/ultima-organizacao`
+        );
+        if (response.data.success && response.data.organizacao) {
+          const org = response.data.organizacao;
+          algoritmoSelecionado.value = org.algoritmo;
+          if (org.grupos_json && Array.isArray(org.grupos_json)) {
+            const novosGrupos = [];
+            const novosLideres = {};
+            org.grupos_json.forEach((grupo, index) => {
+              const alunosDoGrupo = grupo.alunos.map(alunoId => {
+                return alunos.value.find(a => a.id === alunoId) || {
+                  id: alunoId,
+                  nome_aluno: 'Aluno não encontrado'
+                };
+              });
+              novosGrupos.push(alunosDoGrupo);
+              if (grupo.lider_id) {
+                novosLideres[index] = grupo.lider_id;
+              }
+            });
+            grupos.value = novosGrupos;
+            lideres.value = novosLideres;
+          }
+        }
+      } catch (error) {
+        console.log('Nenhuma organização anterior encontrada');
       }
-    }
-  } catch (error) {
-    console.log('Nenhuma organização anterior encontrada');
-  }
-};
-// -----------------------------------------------------------------------------------------------------
+    };
+
+    const iniciarExclusaoAluno = (aluno) => {
+      alunoParaExcluir.value = aluno;
+      mostrarModalExcluir.value = true;
+    };
+
+    const cancelarExclusao = () => {
+      alunoParaExcluir.value = null;
+      mostrarModalExcluir.value = false;
+    };
+
+    const confirmarExclusao = async () => {
+      if (!alunoParaExcluir.value) return;
+      iniciandoExclusao.value = true;
+      try {
+        const alunoId = alunoParaExcluir.value.id;
+        await axios.delete(`http://localhost:3000/alunos/${alunoId}`, {
+          data: { professor_id: usuario.value.id }
+        });
+        alunos.value = alunos.value.filter(a => a.id !== alunoId);
+        grupos.value = grupos.value.map(grupo =>
+          grupo.filter(a => a.id !== alunoId)
+        );
+        grupos.value = grupos.value.filter(grupo => grupo.length > 0);
+        for (const grupoIndex in lideres.value) {
+          if (lideres.value[grupoIndex] === alunoId) {
+            lideres.value[grupoIndex] = null;
+          }
+        }
+        alert('Aluno removido com sucesso!');
+        cancelarExclusao();
+      } catch (error) {
+        console.error('Erro ao excluir aluno:', error);
+        alert(error.response?.data?.error || 'Erro ao excluir aluno. Tente novamente.');
+      } finally {
+        iniciandoExclusao.value = false;
+      }
+    };
 
     onMounted(() => {
       carregarSala();
@@ -384,332 +471,574 @@ const carregarUltimaOrganizacao = async () => {
       salvarOrganizacao,
       exportarPDF,
       reorganizar,
-      voltarParaSalas
+      voltarParaSalas,
+      lideres,
+      definirLider,
+      mostrarModalExcluir,
+      alunoParaExcluir,
+      iniciandoExclusao,
+      iniciarExclusaoAluno,
+      cancelarExclusao,
+      confirmarExclusao
     };
   }
 };
 </script>
 
 <style scoped>
-.organizacao-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  min-height: 100vh;
+/* O <style> permanece igual à versão anterior (com estilos de exclusão e RGM) */
+* {
+  box-sizing: border-box;
 }
 
-.loading-full,
-.error-state {
+.tela-organizacao {
+  height: 100vh;
+  overflow-y: auto;
+  background: #f5f7fa;
+  padding: 15px;
+}
+
+/* Header Fixo e Compacto */
+.header-fixo {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin-bottom: 15px;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  text-align: center;
-}
-
-.loading-full p,
-.error-state p {
-  font-size: 24px;
-  color: #666;
-  margin: 20px 0;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 30px;
-  position: relative;
-}
-
-.btn-voltar {
-  position: absolute;
-  left: 0;
-  top: 0;
-  padding: 10px 20px;
-  background: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.3s;
-}
-
-.btn-voltar:hover {
-  background: #5a6268;
-}
-
-.header h1 {
-  margin: 10px 0;
-  color: #333;
-}
-
-.codigo-sala {
-  color: #666;
-  font-size: 14px;
-}
-
-.config-section {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 30px;
-  display: flex;
-  gap: 20px;
-  align-items: end;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   flex-wrap: wrap;
+  gap: 10px;
 }
 
-.config-group {
-  flex: 1;
-  min-width: 200px;
+.info-sala {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.config-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: #555;
-  font-weight: 500;
+.info-sala h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #2c3e50;
 }
 
-.input-numero,
-.select-algoritmo {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 14px;
-}
-
-.btn-organizar {
-  padding: 12px 30px;
-  background: #28a745;
+.badge-alunos {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 12px;
   font-weight: 600;
-  transition: all 0.3s;
 }
 
-.btn-organizar:hover:not(:disabled) {
-  background: #218838;
-  transform: translateY(-2px);
+.acoes-header {
+  display: flex;
+  gap: 8px;
 }
 
-.btn-organizar:disabled {
-  background: #ccc;
+/* Botões Compactos */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.loading-state,
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  background: #f8f9fa;
-  border-radius: 10px;
+.btn-salvar {
+  background: #28a745;
+  color: white;
 }
 
-.loading-state p,
-.empty-state p {
-  font-size: 18px;
-  color: #666;
-  margin: 10px 0;
+.btn-salvar:hover:not(:disabled) {
+  background: #218838;
 }
 
-.hint {
-  font-size: 14px !important;
+.btn-exportar {
+  background: #007bff;
+  color: white;
 }
 
-.hint strong {
-  color: #007bff;
-  font-size: 18px;
+.btn-exportar:hover:not(:disabled) {
+  background: #0056b3;
 }
 
-.info-organizacao {
-  background: #d4edda;
-  padding: 15px;
-  border-radius: 5px;
-  margin-bottom: 20px;
-  text-align: center;
+.btn-reorganizar {
+  background: #ffc107;
+  color: #333;
 }
 
-.info-organizacao p {
-  margin: 5px 0;
-  color: #155724;
+.btn-reorganizar:hover:not(:disabled) {
+  background: #e0a800;
 }
 
+/* Config em Linha */
+.config-section {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.config-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.config-item {
+  flex: 1;
+  min-width: 150px;
+}
+
+.config-item label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: #555;
+  font-size: 12px;
+}
+
+.config-item select,
+.config-item input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.btn-gerar {
+  flex-shrink: 0;
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  height: 38px;
+}
+
+.btn-gerar:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-gerar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Grid de Grupos Compacto */
 .grupos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 15px;
 }
 
 .grupo-card {
   background: white;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  overflow: hidden;
-  transition: transform 0.2s;
-}
-
-.grupo-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .grupo-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.grupo-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 16px;
+}
+
+.badge {
+  background: #e8eef5;
+  color: #667eea;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Membros Compactos */
+.membros-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.membro {
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.grupo-header h3 {
+.membro-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 150px; /* Ajuste conforme necessário */
+}
+
+.membro-info strong {
+  color: #2c3e50;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.membro-info small {
+  font-size: 11px;
+  color: #6c757d;
+}
+
+.tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-shrink: 0; /* Impede que os botões encolham */
+}
+
+.tag {
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.tag-tecnologia { background: #e3f2fd; color: #1976d2; }
+.tag-saúde { background: #f3e5f5; color: #7b1fa2; }
+.tag-educação { background: #fff3e0; color: #f57c00; }
+.tag-negócios { background: #e8f5e9; color: #388e3c; }
+.tag-arte { background: #fce4ec; color: #c2185b; }
+.tag-ciências { background: #e0f2f1; color: #00796b; }
+.tag-perfil { background: #f5f5f5; color: #616161; }
+
+/* Barra de Diversidade */
+.diversidade {
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.diversidade span {
+  font-size: 11px;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.barra {
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.barra-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.5s;
+}
+
+/* Estado Vazio */
+.vazio {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 8px;
+}
+
+.icone {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.vazio p {
+  color: #6c757d;
   margin: 0;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 400px;
+  width: 90%;
+}
+
+.modal-box h3 {
+  margin: 0 0 10px 0;
   font-size: 18px;
 }
 
-.grupo-count {
-  background: rgba(255,255,255,0.3);
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-}
-
-.alunos-lista {
-  list-style: none;
-  padding: 15px;
-  margin: 0;
-}
-
-.aluno-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.aluno-item:last-child {
-  border-bottom: none;
-}
-
-.aluno-avatar {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
+.modal-box p {
+  margin: 0 0 20px 0;
+  color: #6c757d;
   font-size: 14px;
 }
 
-.aluno-nome {
-  flex: 1;
-  color: #333;
-}
-
-.acoes-finais {
+.modal-btns {
   display: flex;
-  gap: 15px;
-  justify-content: center;
-  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
-.btn-salvar,
-.btn-exportar,
-.btn-reorganizar {
-  padding: 12px 30px;
+.btn-cancel,
+.btn-ok {
+  padding: 8px 16px;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
-  transition: all 0.3s;
 }
 
-.btn-salvar {
-  background: #007bff;
-  color: white;
-}
-
-.btn-salvar:hover {
-  background: #0056b3;
-}
-
-.btn-exportar {
+.btn-cancel {
   background: #6c757d;
   color: white;
 }
-
-.btn-exportar:hover {
+.btn-cancel:hover {
   background: #5a6268;
 }
 
-.btn-reorganizar {
+.btn-ok {
+  background: #667eea;
+  color: white;
+}
+
+/* Botão de Excluir do Modal */
+.btn-danger {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  background: #dc3545;
+  color: white;
+  transition: all 0.2s;
+}
+.btn-danger:hover:not(:disabled) {
+  background: #c82333;
+}
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* Estilo para o membro que é líder */
+.membro-lider {
+  background: #fffbef; /* Um amarelo-claro */
+  border-left-color: #ffc107; /* Borda amarela */
+}
+
+/* Tag para mostrar quem é o líder */
+.tag-lider {
   background: #ffc107;
-  color: #000;
-}
-
-.btn-reorganizar:hover {
-  background: #e0a800;
-}
-
-.lista-completa {
-  margin-top: 30px;
-}
-
-.lista-completa h3 {
-  margin-bottom: 15px;
   color: #333;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+/* Botão base para ícones (líder e excluir) */
+.btn-definir-lider,
+.btn-excluir-aluno {
+  background: #e9ecef;
+  color: #6c757d;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin-left: 4px; /* Pequeno espaço */
+}
+
+.btn-definir-lider:hover {
+  background: #ffc107;
+  color: #333;
+  transform: scale(1.1);
+}
+
+.btn-excluir-aluno:hover {
+  background: #dc3545;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Estilos para a lista de alunos (antes de formar grupos) */
+.lista-completa {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-top: 15px; /* Adicionado espaço */
+}
+.lista-completa h3 {
+  margin-top: 0;
+  margin-bottom: 10px; /* Adicionado espaço */
 }
 
 .alunos-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
 }
 
 .aluno-card {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 15px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  transition: transform 0.2s;
+  justify-content: space-between;
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 6px;
+  border-left: 3px solid #6c757d;
 }
 
-.aluno-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+.aluno-card-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden; /* Evita quebra de layout */
 }
 
+.aluno-card-detalhes {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aluno-avatar {
+  background: #667eea;
+  color: white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.aluno-nome {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aluno-rgm {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.btn-excluir-aluno-card {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.btn-excluir-aluno-card:hover {
+  background: #e9ecef;
+  color: #dc3545;
+}
+
+
+/* Responsivo */
 @media (max-width: 768px) {
-  .config-section {
+  .header-fixo {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .acoes-header {
+    width: 100%;
+  }
+  .acoes-header .btn {
+    flex: 1;
+  }
+  .config-row {
     flex-direction: column;
   }
-
+  .config-item {
+    width: 100%;
+  }
+  .btn-gerar {
+    width: 100%;
+  }
   .grupos-grid {
     grid-template-columns: 1fr;
   }
-
-  .acoes-finais {
-    flex-direction: column;
+  .alunos-cards {
+    grid-template-columns: 1fr;
   }
-
-  .btn-voltar {
-    position: static;
-    margin-bottom: 15px;
+  .membro-info {
+    max-width: calc(100% - 100px); /* Ajuste dinâmico */
   }
 }
 </style>
