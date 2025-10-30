@@ -43,7 +43,8 @@ Este repositório contém os códigos e a documentação desenvolvidos durante o
 1. Clone o repositório:
    ```bash
    git clone https://github.com/AugustoLiberato/PROFIDINA.git
-
-   tela para cadastro do estudante: http://localhost:8080/entrar-sala
    ```
-
+1. Tela para cadastro do estudante:
+   ```bash
+   http://localhost:8080/entrar-sala
+   ```
