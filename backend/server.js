@@ -757,12 +757,15 @@ const app = express();
 
 // 🔧 CORS - Permitir requisições do frontend
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://profidina.vercel.app',  // ⚠️ Trocar depois do deploy no Vercel
-  ],
-  credentials: true
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:8080',  // ADICIONADO para o seu app local (Vue CLI)
+    'http://localhost:3000',
+    'https://profidina.vercel.app',
+    'https://profidina-7y65.vercel.app', // ADICIONADO para o Vercel
+    'https://profidina-7y65-git-main-augustos-projects-30ec658f.vercel.app' // ADICIONADO para garantir
+  ],
+  credentials: true
 }));
 
 app.use(express.json());

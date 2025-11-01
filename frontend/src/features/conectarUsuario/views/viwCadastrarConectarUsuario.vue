@@ -172,225 +172,189 @@
 import { ref, computed, onUnmounted } from "vue";
 import axios from "axios";
 import router from "@/router";
+import API_URL from '@/config/api.js'; // 1. IMPORTAR A API_URL
 
 export default {
-  name: "SignForm",
-  props: {
-    type: String,
-    errorMsg: String,
-  },
-  emits: ["onSubmit"],
-  setup(props, { emit }) {
-    const username = ref("");
-    const password = ref("");
-    const confirmPassword = ref("");
-    const email = ref("");
-    const verificationCode = ref("");
-    const error = ref(false);
-    const passwordMismatch = ref(false);
-    const codeError = ref("");
-    const showPassword = ref(false);
-    const showConfirmPassword = ref(false);
+  name: "SignForm",
+  props: {
+    type: String,
+    errorMsg: String,
+  },
+  emits: ["onSubmit"],
+  setup(props, { emit }) {
+    const username = ref("");
+    const password = ref("");
+    const confirmPassword = ref("");
+    const email = ref("");
+    const verificationCode = ref("");
+    const error = ref(false);
+    const passwordMismatch = ref(false);
+    const codeError = ref("");
+    const showPassword = ref(false);
+    const showConfirmPassword = ref(false);
+    
+    const cadastroStep = ref(1); 
+    const enviandoCodigo = ref(false);
+    const verificandoCodigo = ref(false);
+    const codigoEnviado = ref("");
+    
+    const reenvioDisabled = ref(false);
+    const tempoRestante = ref(60);
+    let intervalReenvio = null;
+
+    const iniciarTimerReenvio = () => {
+      reenvioDisabled.value = true;
+      tempoRestante.value = 60;
+      
+      intervalReenvio = setInterval(() => {
+        tempoRestante.value--;
+        if (tempoRestante.value <= 0) {
+          clearInterval(intervalReenvio);
+          reenvioDisabled.value = false;
+        }
+      }, 1000);
+    };
+
+    onUnmounted(() => {
+      if (intervalReenvio) {
+        clearInterval(intervalReenvio);
+      }
+    });
+
+    const enviarCodigoVerificacao = async () => {
+      try {
+        enviandoCodigo.value = true;
+        // 2. CORRIGIDO AQUI
+        const response = await axios.post(`${API_URL}/enviarCodigoVerificacao`, {
+          email: email.value,
+          username: username.value
+        });
+
+        if (response.data.success) {
+          codigoEnviado.value = response.data.code; 
+          cadastroStep.value = 2;
+          iniciarTimerReenvio();
+          alert("Código de verificação enviado para seu email!");
+        }
+      } catch (error) {
+        alert(error.response?.data?.error || "Erro ao enviar código de verificação");
+      } finally {
+        enviandoCodigo.value = false;
+      }
+    };
+
+    const reenviarCodigo = async () => {
+      await enviarCodigoVerificacao();
+    };
+
+    const verificarECadastrar = async () => {
+      try {
+        verificandoCodigo.value = true;
+        codeError.value = "";
+        console.log("🔍 Verificando código:", verificationCode.value);
+        // 3. CORRIGIDO AQUI
+        const response = await axios.post(`${API_URL}/verificarECadastrar`, {
+          email: email.value,
+          username: username.value,
+          password: password.value,
+          verificationCode: verificationCode.value
+        });
+
+        if (response.data.success) {
+          alert("Cadastro realizado com sucesso! Faça login para continuar.");
+          router.push("/");
+        }
+      } catch (error) {
+        codeError.value = error.response?.data?.error || "Código inválido";
+      } finally {
+        verificandoCodigo.value = false;
+      }
+    };
+
+    const voltarParaStep1 = () => {
+      cadastroStep.value = 1;
+      verificationCode.value = "";
+      codeError.value = "";
+      if (intervalReenvio) {
+        clearInterval(intervalReenvio);
+      }
+      reenvioDisabled.value = false;
+    };
     
-    // Estados do processo de cadastro
-    const cadastroStep = ref(1); // 1 = formulário inicial, 2 = verificação de código
-    const enviandoCodigo = ref(false);
-    const verificandoCodigo = ref(false);
-    const codigoEnviado = ref("");
-    
-    // Controle de reenvio
-    const reenvioDisabled = ref(false);
-    const tempoRestante = ref(60);
-    let intervalReenvio = null;
+    // 4. REMOVIDA A FUNÇÃO 'executarLoginDireto' QUE USAVA LOCALHOST
+    // E QUEBRAVA A LÓGICA DO VUE
 
-    // Função para iniciar timer de reenvio
-    const iniciarTimerReenvio = () => {
-      reenvioDisabled.value = true;
-      tempoRestante.value = 60;
-      
-      intervalReenvio = setInterval(() => {
-        tempoRestante.value--;
-        if (tempoRestante.value <= 0) {
-          clearInterval(intervalReenvio);
-          reenvioDisabled.value = false;
-        }
-      }, 1000);
-    };
+    const onSubmit = () => {
+      console.log('🔹 Form submit executado');
+      error.value = false;
+      passwordMismatch.value = false;
+      codeError.value = "";
+      
+      switch (props.type) {
+        case "cpoCadastroUsuario":
+          if (cadastroStep.value === 1) {
+            error.value = !(username.value && password.value && confirmPassword.value && email.value);
+            
+            if (!error.value) {
+              if (password.value !== confirmPassword.value) {
+                passwordMismatch.value = true;
+                return;
+              }
+              enviarCodigoVerificacao();
+            } else {
+              console.warn("⚠️ Campos faltando");
+            }
+          } else if (cadastroStep.value === 2) {
+            if (!verificationCode.value || verificationCode.value.length < 4) { // Ajustado para 4, mude se for 6
+              codeError.value = "Por favor, insira o código de verificação";
+              return;
+            }
+            verificarECadastrar();
+          }
+          break;
+          
+        case "cpoConectarUsuario":
+          error.value = !(email.value && password.value);
+          
+          if (!error.value) {
+            const userData = {
+              email: email.value,
+              password: password.value,
+            };
+            // 5. LÓGICA CORRIGIDA: Emitir os dados para o 'cpoConectarUsuario.vue' (pai)
+            emit("onSubmit", userData);
+          } else {
+            console.warn("Campos faltando");
+          }
+          break;
+          
+        default:
+          return;
+      }
+    };
 
-    // Limpar interval ao desmontar componente
-    onUnmounted(() => {
-      if (intervalReenvio) {
-        clearInterval(intervalReenvio);
-      }
-    });
-
-    // Função para enviar código de verificação
-    const enviarCodigoVerificacao = async () => {
-      try {
-
-        enviandoCodigo.value = true;
-        const response = await axios.post("http://localhost:3000/enviarCodigoVerificacao", {
-          email: email.value,
-          username: username.value
-
-        });
-
-        if (response.data.success) {
-          codigoEnviado.value = response.data.code; // Apenas para desenvolvimento/teste
-          cadastroStep.value = 2;
-          iniciarTimerReenvio();
-          alert("Código de verificação enviado para seu email!");
-        }
-      } catch (error) {
-        alert(error.response?.data?.error || "Erro ao enviar código de verificação");
-      } finally {
-        enviandoCodigo.value = false;
-      }
-    };
-
-    // Função para reenviar código
-    const reenviarCodigo = async () => {
-      await enviarCodigoVerificacao();
-    };
-
-    // Função para verificar código e completar cadastro
-    const verificarECadastrar = async () => {
-      try {
-        verificandoCodigo.value = true;
-        codeError.value = "";
-        console.log("🔍 Verificando código:", verificationCode.value);
-        const response = await axios.post("http://localhost:3000/verificarECadastrar", {
-          email: email.value,
-          username: username.value,
-          password: password.value,
-          verificationCode: verificationCode.value
-        });
-
-        if (response.data.success) {
-          alert("Cadastro realizado com sucesso! Faça login para continuar.");
-          router.push("/");
-        }
-      } catch (error) {
-        codeError.value = error.response?.data?.error || "Código inválido";
-      } finally {
-        verificandoCodigo.value = false;
-      }
-    };
-
-    // Função para voltar ao step 1
-    const voltarParaStep1 = () => {
-      cadastroStep.value = 1;
-      verificationCode.value = "";
-      codeError.value = "";
-      if (intervalReenvio) {
-        clearInterval(intervalReenvio);
-      }
-      reenvioDisabled.value = false;
-    };
-
-    // Função para executar login diretamente (APENAS para cpoConectarUsuario)
-    const executarLoginDireto = async (userData) => {
-      try {
-        const response = await axios.post("http://localhost:3000/cpoConectarUsuario", userData);
-        if (response.data && response.data.success && response.data.user) {
-          const userForStorage = {
-            id: response.data.user.id,
-            username: response.data.user.username,
-            email: response.data.user.email
-          };
-          
-          localStorage.setItem('user', JSON.stringify(userForStorage));
-
-          alert(response.data.message || "Login realizado com sucesso!");
-          window.location.href = '/account';
-        } else {
-          
-          alert("Erro na estrutura da resposta do servidor");
-        }
-      } catch (error) {
-        
-        alert(error.response?.data?.error || "Erro no login");
-      }
-    };
-
-    const onSubmit = () => {
-      console.log('🔹 Form submit executado');
-
-      // Resetar mensagens de erro
-      error.value = false;
-      passwordMismatch.value = false;
-      codeError.value = "";
-      
-      switch (props.type) {
-        case "cpoCadastroUsuario":
-          if (cadastroStep.value === 1) {
-            // STEP 1: Validar dados iniciais e enviar código
-            error.value = !(username.value && password.value && confirmPassword.value && email.value);
-            
-            if (!error.value) {
-              if (password.value !== confirmPassword.value) {
-                passwordMismatch.value = true;
-                return;
-              }
-              
-              // Enviar código de verificação
-              enviarCodigoVerificacao();
-            } else {
-              console.warn("⚠️ Campos faltando");
-            }
-          } else if (cadastroStep.value === 2) {
-            // STEP 2: Verificar código e completar cadastro
-            if (!verificationCode.value || verificationCode.value.length < 4) {
-              codeError.value = "Por favor, insira o código de verificação";
-              return;
-            }
-            
-            verificarECadastrar();
-          }
-          break;
-          
-        case "cpoConectarUsuario":
-          error.value = !(email.value && password.value);
-          
-          if (!error.value) {
-            const userData = {
-              email: email.value,
-              password: password.value,
-            };
-            executarLoginDireto(userData);
-          } else {
-            console.warn("Campos faltando");
-          }
-          break;
-          
-        default:
-          
-          return;
-      }
-    };
-
-    return {
-      error,
-      passwordMismatch,
-      codeError,
-      username,
-      password,
-      confirmPassword,
-      email,
-      verificationCode,
-      showPassword,
-      showConfirmPassword,
-      cadastroStep,
-      enviandoCodigo,
-      verificandoCodigo,
-      reenvioDisabled,
-      tempoRestante,
-      onSubmit,
-      reenviarCodigo,
-      voltarParaStep1,
-      btnText: computed(() => (props.type === "cpoCadastroUsuario" ? "Cadastrar" : "Entrar")),
-    };
-  },
+    return {
+      error,
+      passwordMismatch,
+      codeError,
+      username,
+      password,
+      confirmPassword,
+      email,
+      verificationCode,
+      showPassword,
+      showConfirmPassword,
+      cadastroStep,
+      enviandoCodigo,
+      verificandoCodigo,
+      reenvioDisabled,
+      tempoRestante,
+      onSubmit,
+      reenviarCodigo,
+      voltarParaStep1,
+      btnText: computed(() => (props.type === "cpoCadastroUsuario" ? "Cadastrar" : "Entrar")),
+    };
+  },
 };
 </script>
 
