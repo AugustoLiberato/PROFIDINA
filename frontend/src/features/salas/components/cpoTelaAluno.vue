@@ -169,7 +169,8 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import axios from 'axios';
 import API_URL from '@/config/api.js';
 
@@ -180,6 +181,7 @@ export default {
     const carregando = ref(false);
     const mensagem = ref('');
     const tipoMensagem = ref('');
+    const route = useRoute(); // Para ler a URL
 
     const formulario = ref({
       codigo_sala: '',
@@ -189,6 +191,15 @@ export default {
       interesse: '',
       perfil: '',
       experiencia: ''
+    });
+
+    onMounted(() => {
+      // Verifica se existe um parâmetro 'codigo' na URL
+      const codigoDaURL = route.query.codigo;
+      if (codigoDaURL) {
+        // Preenche o campo do formulário
+        formulario.value.codigo_sala = codigoDaURL.toUpperCase();
+      }
     });
 
     const opcoes = {
@@ -258,9 +269,7 @@ export default {
       carregando.value = true;
 
       try {
-//        const response = await axios.post('http://localhost:3000/salas/entrar-com-perfil', {
-          const response = await axios.post(`${API_URL}/salas/entrar-com-perfil`, {
-
+        const response = await axios.post(`${API_URL}/salas/entrar-com-perfil`, {
           codigo_sala: formulario.value.codigo_sala,
           nome_aluno: formulario.value.nome_aluno,
           rgm: formulario.value.rgm,
@@ -389,6 +398,7 @@ export default {
   border-radius: 8px;
   font-size: 16px;
   transition: border-color 0.3s;
+  box-sizing: border-box;
 }
 
 .form-group input:focus {
@@ -576,3 +586,4 @@ export default {
   }
 }
 </style>
+

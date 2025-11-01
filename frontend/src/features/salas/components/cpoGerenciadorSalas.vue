@@ -56,7 +56,7 @@
           <h3>{{ sala.nome }}</h3>
           <div class="sala-actions">
             <button @click="editarSala(sala)" class="btn-edit">✏️</button>
-            <button @click="excluirSala(sala)" class="btn-delete">🗑️</button>
+            <button @click="confirmarExclusao(sala)" class="btn-delete">🗑️</button>
           </div>
         </div>
         
@@ -80,7 +80,7 @@
 
         <div class="sala-actions-bottom">
           <button @click="entrarNaSala(sala)" class="btn-secondary">
-            Entra na sala
+            Entrar na sala
           </button>
           <button @click="gerarQRCode(sala)" class="btn-secondary">
             QR Code
@@ -124,26 +124,68 @@
         </form>
       </div>
     </div>
+ 
+    <!-- Modal de Confirmação para Excluir (Substitui o confirm()) -->
+    <div v-if="salaParaExcluir" class="modal-overlay" @click.self="salaParaExcluir = null">
+      <div class="modal">
+        <h3>Confirmar Exclusão</h3>
+        <p>Tem certeza que deseja excluir a sala "<strong>{{ salaParaExcluir.nome }}</strong>"?</p>
+        <p>Esta ação não pode ser desfeita.</p>
+        <div class="modal-actions">
+          <button type="button" @click="salaParaExcluir = null" class="btn-secondary">
+            Cancelar
+          </button>
+          <button type="button" @click="executarExclusao" class="btn-delete-confirm">
+            Sim, Excluir
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para QR Code -->
+    <div v-if="salaQRCode" class="modal-overlay" @click.self="salaQRCode = null">
+      <div class="modal modal-qr">
+        <h3>QR Code para: {{ salaQRCode.nome }}</h3>
+        <p>Peça para seus alunos escanearem este código para entrar na sala.</p>
+        <div class="qr-container">
+          <canvas ref="qrCanvas"></canvas>
+        </div>
+        <p class="qr-link">{{ urlParaQRCode }}</p>
+        <div class="modal-actions">
+          <button type="button" @click="salaQRCode = null" class="btn-primary">
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, nextTick, watch } from 'vue';
 import { useStore } from 'vuex';
-import { useRouter } from 'vue-router'; // ✅ IMPORTAR O ROUTER
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 import API_URL from '@/config/api.js';
+import QRCode from 'qrcode';
 
 export default {
   name: 'GerenciadorSalas',
   setup() {
     const store = useStore();
-    const router = useRouter(); // ✅ USAR O ROUTER
+    const router = useRouter();
     const salas = ref([]);
     const mostrarFormCriar = ref(false);
     const salaEditando = ref(null);
     const mensagem = ref('');
     const tipoMensagem = ref('');
+    const salaParaExcluir = ref(null);
+    
+    // Novas variáveis para o QR Code
+    const salaQRCode = ref(null);
+    const qrCanvas = ref(null);
+    const urlParaQRCode = ref('');
 
     const novaSala = ref({
       nome: '',
@@ -152,7 +194,6 @@ export default {
 
     const usuario = computed(() => store.state.user);
 
-    // Função para mostrar mensagem temporária
     const mostrarMensagem = (texto, tipo = 'success') => {
       mensagem.value = texto;
       tipoMensagem.value = tipo;
@@ -161,7 +202,6 @@ export default {
       }, 3000);
     };
 
-    // Carregar salas do professor
     const carregarSalas = async () => {
       if (!usuario.value.isLoggedIn) {
         console.warn('Usuário não está logado');
@@ -169,9 +209,7 @@ export default {
       }
 
       try {
-       // const response = await axios.get(`http://localhost:3000/salas/professor/${usuario.value.id}`);
         const response = await axios.get(`${API_URL}/salas/professor/${usuario.value.id}`);
-
         if (response.data.success) {
           salas.value = response.data.salas;
         }
@@ -181,10 +219,8 @@ export default {
       }
     };
 
-    // Criar nova sala
     const criarSala = async () => {
       if (!novaSala.value.nome) return;
-
       if (!usuario.value.id) {
         mostrarMensagem('Erro: ID do usuário não encontrado. Faça login novamente.', 'error');
         return;
@@ -196,10 +232,7 @@ export default {
           descricao: novaSala.value.descricao,
           professor_id: usuario.value.id
         };
-
-       // const response = await axios.post('http://localhost:3000/salas', dadosSala);
-       const response = await axios.post(`${API_URL}/salas`, dadosSala);
-        
+        const response = await axios.post(`${API_URL}/salas`, dadosSala);
         if (response.data.success) {
           mostrarMensagem('Sala criada com sucesso!');
           novaSala.value = { nome: '', descricao: '' };
@@ -208,14 +241,10 @@ export default {
         }
       } catch (error) {
         console.error('Erro ao criar sala:', error);
-        mostrarMensagem(
-          error.response?.data?.error || 'Erro ao criar sala', 
-          'error'
-        );
+        mostrarMensagem(error.response?.data?.error || 'Erro ao criar sala', 'error');
       }
     };
 
-    // Editar sala
     const editarSala = (sala) => {
       salaEditando.value = { ...sala };
     };
@@ -227,14 +256,7 @@ export default {
           descricao: salaEditando.value.descricao,
           professor_id: usuario.value.id
         };
-
-        // const response = await axios.put(
-        //   `http://localhost:3000/salas/${salaEditando.value.id}`, 
-        //   dadosEdicao
-        // );
         const response = await axios.put(`${API_URL}/salas/${salaEditando.value.id}`, dadosEdicao);
-
-        
         if (response.data.success) {
           mostrarMensagem('Sala atualizada com sucesso!');
           salaEditando.value = null;
@@ -242,10 +264,7 @@ export default {
         }
       } catch (error) {
         console.error('Erro ao editar sala:', error);
-        mostrarMensagem(
-          error.response?.data?.error || 'Erro ao editar sala', 
-          'error'
-        );
+        mostrarMensagem(error.response?.data?.error || 'Erro ao editar sala', 'error');
       }
     };
 
@@ -253,32 +272,26 @@ export default {
       salaEditando.value = null;
     };
 
-    // Excluir sala
-    const excluirSala = async (sala) => {
-      if (!confirm(`Tem certeza que deseja excluir a sala "${sala.nome}"? Esta ação não pode ser desfeita.`)) {
-        return;
-      }
+    // Funções de exclusão com modal
+    const confirmarExclusao = (sala) => {
+      salaParaExcluir.value = sala;
+    };
 
+    const executarExclusao = async () => {
+      if (!salaParaExcluir.value) return;
       try {
-        // const response = await axios.delete(`http://localhost:3000/salas/${sala.id}`, {
-        //   data: { professor_id: usuario.value.id }
-        // });
-        const response = await axios.delete(`${API_URL}/salas/${sala.id}`, {
-           data: { professor_id: usuario.value.id }
+        const response = await axios.delete(`${API_URL}/salas/${salaParaExcluir.value.id}`, {
+          data: { professor_id: usuario.value.id }
         });
-
-
-        
         if (response.data.success) {
           mostrarMensagem('Sala excluída com sucesso!');
           await carregarSalas();
         }
       } catch (error) {
         console.error('Erro ao excluir sala:', error);
-        mostrarMensagem(
-          error.response?.data?.error || 'Erro ao excluir sala', 
-          'error'
-        );
+        mostrarMensagem(error.response?.data?.error || 'Erro ao excluir sala', 'error');
+      } finally {
+        salaParaExcluir.value = null;
       }
     };
 
@@ -297,7 +310,6 @@ export default {
       return new Date(dataString).toLocaleDateString('pt-BR');
     };
 
-    // ✅ FUNÇÃO CORRIGIDA PARA NAVEGAR PARA A TELA DE ORGANIZAÇÃO
     const entrarNaSala = (sala) => {
       router.push({ 
         name: 'OrganizarSala',
@@ -306,9 +318,29 @@ export default {
     };
 
     const gerarQRCode = (sala) => {
-      // TODO: Implementar geração de QR Code
-      alert(`QR Code para sala: ${sala.nome}\nCódigo: ${sala.codigo_sala}`);
+      const baseUrl = "https://profidina-7y65.vercel.app/entrar-sala";
+      urlParaQRCode.value = `${baseUrl}?codigo=${sala.codigo_sala}`;
+      salaQRCode.value = sala; // Abre o modal
     };
+
+    // Observa a variável salaQRCode. Quando ela for preenchida,
+    // espera o DOM atualizar (nextTick) e então desenha o QR Code.
+    watch(salaQRCode, (novaSala) => {
+      if (novaSala) {
+        nextTick(() => {
+          if (qrCanvas.value) {
+            QRCode.toCanvas(
+              qrCanvas.value, 
+              urlParaQRCode.value, 
+              { width: 250, margin: 2 }, 
+              (error) => {
+                if (error) console.error(error);
+              }
+            );
+          }
+        });
+      }
+    });
 
     onMounted(() => {
       carregarSalas();
@@ -325,12 +357,18 @@ export default {
       editarSala,
       salvarEdicao,
       cancelarEdicao,
-      excluirSala,
       copiarCodigo,
       formatarData,
-      entrarNaSala, // ✅ FUNÇÃO CORRIGIDA
+      entrarNaSala,
       gerarQRCode,
-      carregarSalas
+      carregarSalas,
+      salaParaExcluir,
+      confirmarExclusao,
+      executarExclusao,
+      // Retornos para o QR Code
+      salaQRCode,
+      qrCanvas,
+      urlParaQRCode
     };
   }
 };
@@ -359,7 +397,7 @@ $white: #fff;
   margin-bottom: 30px;
 
   h2 {
-    color: $primary;
+    color: $secondary;
     margin: 0;
   }
 }
@@ -388,6 +426,7 @@ $white: #fff;
     border: 2px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
+    box-sizing: border-box;
 
     &:focus {
       outline: none;
@@ -442,6 +481,8 @@ $white: #fff;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
     transform: translateY(-2px);
@@ -459,11 +500,14 @@ $white: #fff;
     margin: 0;
     color: $secondary;
     font-size: 18px;
+    word-break: break-word;
+    padding-right: 10px;
   }
 
   .sala-actions {
     display: flex;
     gap: 5px;
+    flex-shrink: 0;
   }
 }
 
@@ -471,6 +515,7 @@ $white: #fff;
   color: #6c757d;
   font-size: 14px;
   margin-bottom: 15px;
+  flex-grow: 1; 
 }
 
 .sala-info {
@@ -489,6 +534,7 @@ $white: #fff;
       font-family: monospace;
       font-weight: bold;
       color: $secondary;
+      font-size: 16px;
     }
   }
 
@@ -507,14 +553,16 @@ $white: #fff;
   display: flex;
   gap: 10px;
   justify-content: flex-end;
+  margin-top: auto; 
 }
 
-.btn-primary, .btn-secondary, .btn-edit, .btn-delete, .btn-copy {
+.btn-primary, .btn-secondary, .btn-edit, .btn-delete, .btn-copy, .btn-delete-confirm {
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
   transition: all 0.2s;
 
   &:disabled {
@@ -545,9 +593,9 @@ $white: #fff;
 
 .btn-edit {
   background: $warning;
-  color: $white;
+  color: $dark; 
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: 14px;
 
   &:hover {
     background: darken($warning, 10%);
@@ -558,18 +606,28 @@ $white: #fff;
   background: $error;
   color: $white;
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: 14px;
 
   &:hover {
     background: darken($error, 10%);
   }
 }
 
+.btn-delete-confirm {
+  background: $error;
+  color: $white;
+  
+  &:hover {
+    background: darken($error, 10%);
+  }
+}
+
+
 .btn-copy {
   background: $light;
   color: $secondary;
-  padding: 2px 6px;
-  font-size: 12px;
+  padding: 4px 8px;
+  font-size: 14px;
 
   &:hover {
     background: darken($light, 10%);
@@ -597,6 +655,7 @@ $white: #fff;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
 
   h3 {
     margin-top: 0;
@@ -611,6 +670,39 @@ $white: #fff;
   justify-content: flex-end;
   margin-top: 20px;
 }
+
+/* Estilos para o Modal QR Code */
+.modal-qr {
+  text-align: center;
+
+  p {
+    color: $dark;
+    margin-bottom: 20px;
+  }
+
+  .qr-container {
+    padding: 20px;
+    background: $light;
+    border-radius: 8px;
+    display: inline-block;
+    margin-bottom: 20px;
+  }
+
+  .qr-link {
+    font-size: 12px;
+    color: $secondary;
+    word-break: break-all;
+    background: $light;
+    padding: 8px;
+    border-radius: 4px;
+  }
+
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
 
 @media (max-width: 768px) {
   .salas-grid {
@@ -637,3 +729,4 @@ $white: #fff;
   }
 }
 </style>
+
