@@ -171,6 +171,7 @@
 <script>
 import { ref } from 'vue';
 import axios from 'axios';
+import API_URL from '@/config/api.js';
 
 export default {
   name: 'EntradaAluno',
@@ -257,7 +258,9 @@ export default {
       carregando.value = true;
 
       try {
-        const response = await axios.post('http://localhost:3000/salas/entrar-com-perfil', {
+//        const response = await axios.post('http://localhost:3000/salas/entrar-com-perfil', {
+          const response = await axios.post(`${API_URL}/salas/entrar-com-perfil`, {
+
           codigo_sala: formulario.value.codigo_sala,
           nome_aluno: formulario.value.nome_aluno,
           rgm: formulario.value.rgm,

@@ -132,6 +132,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router'; // ✅ IMPORTAR O ROUTER
 import axios from 'axios';
+import API_URL from '@/config/api.js';
 
 export default {
   name: 'GerenciadorSalas',
@@ -168,8 +169,9 @@ export default {
       }
 
       try {
-        const response = await axios.get(`http://localhost:3000/salas/professor/${usuario.value.id}`);
-        
+       // const response = await axios.get(`http://localhost:3000/salas/professor/${usuario.value.id}`);
+        const response = await axios.get(`${API_URL}/salas/professor/${usuario.value.id}`);
+
         if (response.data.success) {
           salas.value = response.data.salas;
         }
@@ -195,7 +197,8 @@ export default {
           professor_id: usuario.value.id
         };
 
-        const response = await axios.post('http://localhost:3000/salas', dadosSala);
+       // const response = await axios.post('http://localhost:3000/salas', dadosSala);
+       const response = await axios.post(`${API_URL}/salas`, dadosSala);
         
         if (response.data.success) {
           mostrarMensagem('Sala criada com sucesso!');
@@ -225,10 +228,12 @@ export default {
           professor_id: usuario.value.id
         };
 
-        const response = await axios.put(
-          `http://localhost:3000/salas/${salaEditando.value.id}`, 
-          dadosEdicao
-        );
+        // const response = await axios.put(
+        //   `http://localhost:3000/salas/${salaEditando.value.id}`, 
+        //   dadosEdicao
+        // );
+        const response = await axios.put(`${API_URL}/salas/${salaEditando.value.id}`, dadosEdicao);
+
         
         if (response.data.success) {
           mostrarMensagem('Sala atualizada com sucesso!');
@@ -255,9 +260,14 @@ export default {
       }
 
       try {
-        const response = await axios.delete(`http://localhost:3000/salas/${sala.id}`, {
-          data: { professor_id: usuario.value.id }
+        // const response = await axios.delete(`http://localhost:3000/salas/${sala.id}`, {
+        //   data: { professor_id: usuario.value.id }
+        // });
+        const response = await axios.delete(`${API_URL}/salas/${sala.id}`, {
+           data: { professor_id: usuario.value.id }
         });
+
+
         
         if (response.data.success) {
           mostrarMensagem('Sala excluída com sucesso!');
