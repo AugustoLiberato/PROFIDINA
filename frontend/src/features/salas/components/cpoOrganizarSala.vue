@@ -182,6 +182,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import axios from 'axios';
+import API_URL from '@/config/api.js';
 
 export default {
   name: 'OrganizacaoSala',
@@ -208,7 +209,8 @@ export default {
     const carregarSala = async () => {
       const salaId = route.params.id;
       try {
-        const response = await axios.get(`http://localhost:3000/salas/${salaId}`);
+        //const response = await axios.get(`http://localhost:3000/salas/${salaId}`);
+        const response = await axios.get(`${API_URL}/salas/${salaId}`);
         if (response.data.success) {
           sala.value = response.data.sala;
           await carregarAlunos();
@@ -226,9 +228,12 @@ export default {
       if (!sala.value || !usuario.value.id) return;
       carregandoAlunos.value = true;
       try {
+        // const response = await axios.get(
+        //   `http://localhost:3000/salas/${sala.value.id}/alunos?professor_id=${usuario.value.id}`
+        // );
         const response = await axios.get(
-          `http://localhost:3000/salas/${sala.value.id}/alunos?professor_id=${usuario.value.id}`
-        );
+      `${API_URL}/salas/${sala.value.id}/alunos?professor_id=${usuario.value.id}`
+    );
         if (response.data.success) {
           // Garante que o RGM seja tratado como string ou null
           alunos.value = response.data.alunos.map(aluno => ({
@@ -358,7 +363,9 @@ export default {
           })),
           data: new Date().toISOString()
         };
-        const response = await axios.post('http://localhost:3000/organizacoes', organizacao);
+        //const response = await axios.post('http://localhost:3000/organizacoes', organizacao);
+          const response = await axios.post(`${API_URL}/organizacoes`, organizacao);
+
         if (response.data.success) {
           alert('Organização salva com sucesso!');
         }
@@ -385,9 +392,12 @@ export default {
     const carregarUltimaOrganizacao = async () => {
       if (!sala.value) return;
       try {
+        // const response = await axios.get(
+        //   `http://localhost:3000/salas/${sala.value.id}/ultima-organizacao`
+        // );
         const response = await axios.get(
-          `http://localhost:3000/salas/${sala.value.id}/ultima-organizacao`
-        );
+      `${API_URL}/salas/${sala.value.id}/ultima-organizacao`
+    );
         if (response.data.success && response.data.organizacao) {
           const org = response.data.organizacao;
           algoritmoSelecionado.value = org.algoritmo;
@@ -430,9 +440,12 @@ export default {
       iniciandoExclusao.value = true;
       try {
         const alunoId = alunoParaExcluir.value.id;
-        await axios.delete(`http://localhost:3000/alunos/${alunoId}`, {
-          data: { professor_id: usuario.value.id }
-        });
+        // await axios.delete(`http://localhost:3000/alunos/${alunoId}`, {
+        //   data: { professor_id: usuario.value.id }
+        // });
+         await axios.delete(`${API_URL}/alunos/${alunoId}`, {
+      data: { professor_id: usuario.value.id }
+    });
         alunos.value = alunos.value.filter(a => a.id !== alunoId);
         grupos.value = grupos.value.map(grupo =>
           grupo.filter(a => a.id !== alunoId)
