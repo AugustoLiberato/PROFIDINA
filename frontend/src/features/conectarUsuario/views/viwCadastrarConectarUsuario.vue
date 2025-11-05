@@ -1,4 +1,4 @@
- <template>
+<template>
   <div>
     <form @submit.prevent="onSubmit()">
       <div class='container'>
@@ -6,16 +6,28 @@
           <div v-if="type === 'cpoCadastroUsuario'" class='label-float'>
             <h1>{{ cadastroStep === 1 ? 'Cadastrar' : 'Confirmar Email' }}</h1>
           </div>
-<!-- cpoConectarUsuario -->
+
           <div v-if="type === 'cpoCadastroUsuario'" class='label-float'>
             <p> 
               <router-link to="/">Voltar</router-link>
             </p>
-
           </div>
 
           <div v-if="type === 'cpoConectarUsuario'" class='label-float'>
             <h1> Profidina Ágil  </h1>
+          </div>
+
+          <!-- MENSAGEM DE SUCESSO NO LOGIN (vinda do cadastro) -->
+          <div v-if="cadastroSucessoMsg" class="success-message-blue">
+            {{ cadastroSucessoMsg }}
+          </div>
+
+          <!-- MENSAGENS DE SUCESSO E ERRO GLOBAIS -->
+          <div v-if="successMessage" class="success-message">
+            {{ successMessage }}
+          </div>
+          <div v-if="errorMessage" class="error-message">
+            {{ errorMessage }}
           </div>
          
           <!-- STEP 1: Formulário inicial de cadastro -->
@@ -33,7 +45,7 @@
               />
               <label for='email'>Email</label>
             </div>
-            <!-- div da senha -->
+
             <div class='label-float'>
               <input 
                 v-bind:type="showPassword ? 'text' : 'password'" 
@@ -43,7 +55,6 @@
                 pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}"  
                 title="Senha deve ter no mínimo 8 caracteres, incluindo maiúscula, minúscula e número"
                 required
-
               />
               <label for='password'>Senha</label>
               <span @click="showPassword = !showPassword" class="password-toggle">
@@ -51,7 +62,7 @@
                 <i v-else class="fas fa-eye"></i>
               </span>
             </div>
-              <!-- div de confirmar senha -->
+
             <div class='label-float'>
               <input 
                 v-bind:type="showConfirmPassword ? 'text' : 'password'" 
@@ -67,8 +78,7 @@
             </div>
 
             <p v-if="error" class="error-msg">Por favor, preencha todos os campos</p>
-            <!-- <p v-else-if="passwordMismatch" class="error-msg">As senhas não coincidem</p> -->
-             <p v-else-if="confirmPassword && password && password !== confirmPassword" class="error-msg">
+            <p v-else-if="confirmPassword && password && password !== confirmPassword" class="error-msg">
                 As senhas não coincidem
             </p>
             <p v-else-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
@@ -87,7 +97,7 @@
               <p class="email-highlight">{{ email }}</p>
               <p class="small-text">Verifique sua caixa de entrada e spam</p>
             </div>
-
+          
             <div class='label-float'>
               <input 
                 type='text' 
@@ -169,192 +179,223 @@
 </template>
 
 <script>
-import { ref, computed, onUnmounted } from "vue";
+import { ref, computed, onUnmounted, onMounted } from "vue";
 import axios from "axios";
 import router from "@/router";
-import API_URL from '@/config/api.js'; // 1. IMPORTAR A API_URL
+import { useRoute } from "vue-router";
+import API_URL from '@/config/api.js';
 
 export default {
-  name: "SignForm",
-  props: {
-    type: String,
-    errorMsg: String,
-  },
-  emits: ["onSubmit"],
-  setup(props, { emit }) {
-    const username = ref("");
-    const password = ref("");
-    const confirmPassword = ref("");
-    const email = ref("");
-    const verificationCode = ref("");
-    const error = ref(false);
-    const passwordMismatch = ref(false);
-    const codeError = ref("");
-    const showPassword = ref(false);
-    const showConfirmPassword = ref(false);
-    
-    const cadastroStep = ref(1); 
-    const enviandoCodigo = ref(false);
-    const verificandoCodigo = ref(false);
-    const codigoEnviado = ref("");
-    
-    const reenvioDisabled = ref(false);
-    const tempoRestante = ref(60);
-    let intervalReenvio = null;
-
-    const iniciarTimerReenvio = () => {
-      reenvioDisabled.value = true;
-      tempoRestante.value = 60;
-      
-      intervalReenvio = setInterval(() => {
-        tempoRestante.value--;
-        if (tempoRestante.value <= 0) {
-          clearInterval(intervalReenvio);
-          reenvioDisabled.value = false;
-        }
-      }, 1000);
-    };
-
-    onUnmounted(() => {
-      if (intervalReenvio) {
-        clearInterval(intervalReenvio);
-      }
-    });
-
-    const enviarCodigoVerificacao = async () => {
-      try {
-        enviandoCodigo.value = true;
-        // 2. CORRIGIDO AQUI
-        const response = await axios.post(`${API_URL}/enviarCodigoVerificacao`, {
-          email: email.value,
-          username: username.value
-        });
-
-        if (response.data.success) {
-          codigoEnviado.value = response.data.code; 
-          cadastroStep.value = 2;
-          iniciarTimerReenvio();
-          alert("Código de verificação enviado para seu email!");
-        }
-      } catch (error) {
-        alert(error.response?.data?.error || "Erro ao enviar código de verificação");
-      } finally {
-        enviandoCodigo.value = false;
-      }
-    };
-
-    const reenviarCodigo = async () => {
-      await enviarCodigoVerificacao();
-    };
-
-    const verificarECadastrar = async () => {
-      try {
-        verificandoCodigo.value = true;
-        codeError.value = "";
-        console.log("🔍 Verificando código:", verificationCode.value);
-        // 3. CORRIGIDO AQUI
-        const response = await axios.post(`${API_URL}/verificarECadastrar`, {
-          email: email.value,
-          username: username.value,
-          password: password.value,
-          verificationCode: verificationCode.value
-        });
-
-        if (response.data.success) {
-          alert("Cadastro realizado com sucesso! Faça login para continuar.");
-          router.push("/");
-        }
-      } catch (error) {
-        codeError.value = error.response?.data?.error || "Código inválido";
-      } finally {
-        verificandoCodigo.value = false;
-      }
-    };
-
-    const voltarParaStep1 = () => {
-      cadastroStep.value = 1;
-      verificationCode.value = "";
-      codeError.value = "";
-      if (intervalReenvio) {
-        clearInterval(intervalReenvio);
-      }
-      reenvioDisabled.value = false;
-    };
+  name: "SignForm",
+  props: {
+    type: String,
+    errorMsg: String,
+  },
+  emits: ["onSubmit"],
+  setup(props, { emit }) {
+    const route = useRoute();
+    const username = ref("");
+    const password = ref("");
+    const confirmPassword = ref("");
+    const email = ref("");
+    const verificationCode = ref("");
+    const error = ref(false);
+    const passwordMismatch = ref(false);
+    const codeError = ref("");
+    const successMessage = ref("");
+    const errorMessage = ref("");
+    const cadastroSucessoMsg = ref("");
+    const showPassword = ref(false);
+    const showConfirmPassword = ref(false);
     
-    // 4. REMOVIDA A FUNÇÃO 'executarLoginDireto' QUE USAVA LOCALHOST
-    // E QUEBRAVA A LÓGICA DO VUE
+    const cadastroStep = ref(1); 
+    const enviandoCodigo = ref(false);
+    const verificandoCodigo = ref(false);
+    const codigoEnviado = ref("");
+    
+    const reenvioDisabled = ref(false);
+    const tempoRestante = ref(60);
+    let intervalReenvio = null;
 
-    const onSubmit = () => {
-      console.log('🔹 Form submit executado');
-      error.value = false;
-      passwordMismatch.value = false;
-      codeError.value = "";
-      
-      switch (props.type) {
-        case "cpoCadastroUsuario":
-          if (cadastroStep.value === 1) {
-            error.value = !(username.value && password.value && confirmPassword.value && email.value);
-            
-            if (!error.value) {
-              if (password.value !== confirmPassword.value) {
-                passwordMismatch.value = true;
-                return;
-              }
-              enviarCodigoVerificacao();
-            } else {
-              console.warn("⚠️ Campos faltando");
-            }
-          } else if (cadastroStep.value === 2) {
-            if (!verificationCode.value || verificationCode.value.length < 4) { // Ajustado para 4, mude se for 6
-              codeError.value = "Por favor, insira o código de verificação";
-              return;
-            }
-            verificarECadastrar();
-          }
-          break;
-          
-        case "cpoConectarUsuario":
-          error.value = !(email.value && password.value);
-          
-          if (!error.value) {
-            const userData = {
-              email: email.value,
-              password: password.value,
-            };
-            // 5. LÓGICA CORRIGIDA: Emitir os dados para o 'cpoConectarUsuario.vue' (pai)
-            emit("onSubmit", userData);
-          } else {
-            console.warn("Campos faltando");
-          }
-          break;
-          
-        default:
-          return;
-      }
-    };
+    // Verifica se há mensagem de sucesso vinda do cadastro
+    onMounted(() => {
+      if (props.type === 'cpoConectarUsuario' && route.query.cadastroSucesso === 'true') {
+        cadastroSucessoMsg.value = "✓ Cadastro realizado com sucesso! Faça login para continuar.";
+        
+        // Remove a mensagem após 5 segundos
+        setTimeout(() => {
+          cadastroSucessoMsg.value = "";
+          // Limpa o query parameter da URL
+          router.replace({ query: {} });
+        }, 5000);
+      }
+    });
 
-    return {
-      error,
-      passwordMismatch,
-      codeError,
-      username,
-      password,
-      confirmPassword,
-      email,
-      verificationCode,
-      showPassword,
-      showConfirmPassword,
-      cadastroStep,
-      enviandoCodigo,
-      verificandoCodigo,
-      reenvioDisabled,
-      tempoRestante,
-      onSubmit,
-      reenviarCodigo,
-      voltarParaStep1,
-      btnText: computed(() => (props.type === "cpoCadastroUsuario" ? "Cadastrar" : "Entrar")),
-    };
-  },
+    const iniciarTimerReenvio = () => {
+      reenvioDisabled.value = true;
+      tempoRestante.value = 60;
+      
+      intervalReenvio = setInterval(() => {
+        tempoRestante.value--;
+        if (tempoRestante.value <= 0) {
+          clearInterval(intervalReenvio);
+          reenvioDisabled.value = false;
+        }
+      }, 1000);
+    };
+
+    onUnmounted(() => {
+      if (intervalReenvio) {
+        clearInterval(intervalReenvio);
+      }
+    });
+
+    const showSuccessMessage = (msg) => {
+      successMessage.value = msg;
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 3000);
+    };
+
+    const showErrorMessage = (msg) => {
+      errorMessage.value = msg;
+      setTimeout(() => {
+        errorMessage.value = "";
+      }, 3000);
+    };
+
+    const enviarCodigoVerificacao = async () => {
+      try {
+        enviandoCodigo.value = true;
+        const response = await axios.post(`${API_URL}/enviarCodigoVerificacao`, {
+          email: email.value,
+          username: username.value
+        });
+
+        if (response.data.success) {
+          codigoEnviado.value = response.data.code; 
+          cadastroStep.value = 2;
+          iniciarTimerReenvio();
+        }
+      } catch (error) {
+        console.error("Erro ao enviar código:", error);
+        showErrorMessage(error.response?.data?.error || "Erro ao enviar código de verificação");
+      } finally {
+        enviandoCodigo.value = false;
+      }
+    };
+
+    const reenviarCodigo = async () => {
+      await enviarCodigoVerificacao();
+    };
+
+    const verificarECadastrar = async () => {
+      try {
+        verificandoCodigo.value = true;
+        codeError.value = "";
+        console.log("🔍 Verificando código:", verificationCode.value);
+        
+        const response = await axios.post(`${API_URL}/verificarECadastrar`, {
+          email: email.value,
+          username: username.value,
+          password: password.value,
+          verificationCode: verificationCode.value
+        });
+
+        if (response.data.success) {
+          // Redireciona para login com parâmetro de sucesso
+          router.push("/?cadastroSucesso=true");
+        }
+      } catch (error) {
+        codeError.value = error.response?.data?.error || "Código inválido";
+      } finally {
+        verificandoCodigo.value = false;
+      }
+    };
+
+    const voltarParaStep1 = () => {
+      cadastroStep.value = 1;
+      verificationCode.value = "";
+      codeError.value = "";
+      if (intervalReenvio) {
+        clearInterval(intervalReenvio);
+      }
+      reenvioDisabled.value = false;
+    };
+
+    const onSubmit = () => {
+      console.log('🔹 Form submit executado');
+      error.value = false;
+      passwordMismatch.value = false;
+      codeError.value = "";
+      
+      switch (props.type) {
+        case "cpoCadastroUsuario":
+          if (cadastroStep.value === 1) {
+            error.value = !(username.value && password.value && confirmPassword.value && email.value);
+            
+            if (!error.value) {
+              if (password.value !== confirmPassword.value) {
+                passwordMismatch.value = true;
+                return;
+              }
+              enviarCodigoVerificacao();
+            } else {
+              console.warn("⚠️ Campos faltando");
+            }
+          } else if (cadastroStep.value === 2) {
+            if (!verificationCode.value || verificationCode.value.length < 4) {
+              codeError.value = "Por favor, insira o código de verificação";
+              return;
+            }
+            verificarECadastrar();
+          }
+          break;
+          
+        case "cpoConectarUsuario":
+          error.value = !(email.value && password.value);
+          
+          if (!error.value) {
+            const userData = {
+              email: email.value,
+              password: password.value,
+            };
+            emit("onSubmit", userData);
+          } else {
+            console.warn("Campos faltando");
+          }
+          break;
+          
+        default:
+          return;
+      }
+    };
+
+    return {
+      error,
+      passwordMismatch,
+      codeError,
+      successMessage,
+      errorMessage,
+      cadastroSucessoMsg,
+      username,
+      password,
+      confirmPassword,
+      email,
+      verificationCode,
+      showPassword,
+      showConfirmPassword,
+      cadastroStep,
+      enviandoCodigo,
+      verificandoCodigo,
+      reenvioDisabled,
+      tempoRestante,
+      onSubmit,
+      reenviarCodigo,
+      voltarParaStep1,
+      btnText: computed(() => (props.type === "cpoCadastroUsuario" ? "Cadastrar" : "Entrar")),
+    };
+  },
 };
 </script>
 
@@ -365,6 +406,8 @@ $violet: #4038a0;
 $card: #ffffff80;
 $white: #fff;
 $error: #ff4444;
+$success: #44ff88;
+$blue: #48c9f4;
 
 h1 {
   text-align: center;
@@ -375,6 +418,56 @@ h1 {
 .justify-center {
   display: flex;
   justify-content: center;
+}
+
+/* MENSAGEM DE SUCESSO AZUL (vinda do cadastro) */
+.success-message-blue {
+  background: rgba(72, 201, 244, 0.15);
+  border-left: 4px solid $blue;
+  color: #005580;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 12pt;
+  text-align: center;
+  animation: slideIn 0.3s ease-out;
+}
+
+/* ESTILOS PARA AS MENSAGENS DE SUCESSO E ERRO */
+.success-message {
+  background: rgba(68, 255, 136, 0.2);
+  border-left: 4px solid $success;
+  color: #006633;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 12pt;
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-message {
+  background: rgba(255, 68, 68, 0.2);
+  border-left: 4px solid $error;
+  color: $error;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 12pt;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .label-float {
@@ -543,3 +636,4 @@ a {
   }
 }
 </style>
+

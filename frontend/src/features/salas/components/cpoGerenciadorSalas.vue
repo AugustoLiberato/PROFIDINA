@@ -146,7 +146,7 @@
     <div v-if="salaQRCode" class="modal-overlay" @click.self="salaQRCode = null">
       <div class="modal modal-qr">
         <h3>QR Code para: {{ salaQRCode.nome }}</h3>
-        <p>Peça para seus alunos escanearem este código para entrar na sala.</p>
+        <p>Escanear este código para entrar na sala.</p>
         <div class="qr-container">
           <canvas ref="qrCanvas"></canvas>
         </div>
@@ -325,6 +325,7 @@ export default {
 
     // Observa a variável salaQRCode. Quando ela for preenchida,
     // espera o DOM atualizar (nextTick) e então desenha o QR Code.
+    // ALTERAÇÃO: width reduzido de 250 para 180
     watch(salaQRCode, (novaSala) => {
       if (novaSala) {
         nextTick(() => {
@@ -332,7 +333,7 @@ export default {
             QRCode.toCanvas(
               qrCanvas.value, 
               urlParaQRCode.value, 
-              { width: 250, margin: 2 }, 
+              { width: 180, margin: 2 }, // TAMANHO REDUZIDO AQUI
               (error) => {
                 if (error) console.error(error);
               }
@@ -671,29 +672,32 @@ $white: #fff;
   margin-top: 20px;
 }
 
-/* Estilos para o Modal QR Code */
+/* Estilos para o Modal QR Code - TAMANHO REDUZIDO */
 .modal-qr {
   text-align: center;
+  max-width: 900px;
+  margin-top: -150px; /* Move o modal para cima */
 
   p {
     color: $dark;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+    font-size: 20px;
   }
 
   .qr-container {
     padding: 20px;
     background: $light;
-    border-radius: 8px;
+    border-radius: 50px;
     display: inline-block;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
 
   .qr-link {
-    font-size: 12px;
+    font-size: 20px;
     color: $secondary;
     word-break: break-all;
     background: $light;
-    padding: 8px;
+    padding: 6px;
     border-radius: 4px;
   }
 
@@ -727,6 +731,10 @@ $white: #fff;
     margin: 20px;
     width: calc(100% - 40px);
   }
+  
+  /* QR Code ainda menor em mobile */
+  .modal-qr {
+    max-width: 300px;
+  }
 }
 </style>
-
