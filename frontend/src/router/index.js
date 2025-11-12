@@ -30,7 +30,7 @@ const routes = [
   {
     path: "/account",
     name: "TelaSalas",
-    component: () => import( '@/features/salas/viwTelaSalas.vue'),
+    component: () => import( '@/features/salas/views/viwTelaSalas.vue'),
     beforeEnter: (to, from, next) => {
       store.state.user.isLoggedIn ? next() : next({ name: "Home" });
     },

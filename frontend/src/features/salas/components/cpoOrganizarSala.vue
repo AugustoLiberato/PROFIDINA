@@ -10,7 +10,8 @@
           <button @click="voltarParaSalas" class="btn btn-voltar">
             ← Voltar
           </button>
-          <h2>{{ sala.nome }}</h2> </div>
+          <h2>{{ sala.nome }}</h2>
+        </div>
 
         <div>
           <p class="codigo-sala">Código: {{ sala.codigo_sala }}</p>
@@ -42,8 +43,19 @@
           </div>
 
           <button @click="organizarGrupos" class="btn btn-gerar" :disabled="alunos.length === 0">
-            🎲 Organizar Grupos Aleatoriamente
+            🎲 Organizar Grupos com Zig-Zag
           </button>
+        </div>
+        
+        <div class="info-algoritmo" v-if="grupos.length > 0">
+          <p>
+            ✓ Grupos organizados com <strong>{{ getNomeAlgoritmo() }}</strong> + 
+            <strong>Algoritmo Zig-Zag</strong>
+          </p>
+          <p class="descricao-zigzag">
+            O Zig-Zag equilibra os grupos combinando alunos com maior pontuação 
+            com alunos de menor pontuação
+          </p>
         </div>
       </div>
 
@@ -52,17 +64,18 @@
           <p>⏳ Carregando alunos...</p>
         </div>
       </div>
+      
       <div class="alunos-section" v-else-if="alunos.length === 0">
         <div class="vazio">
-          <div class="icone">📚</div> <p>Nenhum aluno na sala ainda</p>
+          <div class="icone">📚</div>
+          <p>Nenhum aluno na sala ainda</p>
           <p class="hint">Os alunos podem entrar usando o código: <strong>{{ sala.codigo_sala }}</strong></p>
         </div>
       </div>
 
       <div class="grupos-container" v-if="grupos.length > 0">
         <div class="info-organizacao">
-          <p>✓ Grupos organizados usando <strong>{{ getNomeAlgoritmo() }}</strong></p>
-          <p>Total de {{ grupos.length }} grupos formados</p>
+          <p>✓ Total de {{ grupos.length }} grupos formados</p>
         </div>
 
         <div class="grupos-grid">
@@ -86,6 +99,7 @@
                 <div class="membro-info">
                   <strong>{{ aluno.nome_aluno }}</strong>
                   <small v-if="aluno.rgm">RGM: {{ aluno.rgm }}</small>
+                  <small class="pontuacao-aluno">📊 Pontuação: {{ aluno.pontuacao || 0 }}</small>
                 </div>
 
                 <div class="tags">
@@ -109,7 +123,14 @@
                   </button>
                 </div>
               </li>
-              </ul>
+            </ul>
+
+            <!-- Estatísticas do grupo -->
+            <div class="estatisticas-grupo">
+              <span class="stat-item">
+                📊 Pontuação média: {{ calcularPontuacaoMedia(grupo) }}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -135,6 +156,7 @@
               <div class="aluno-card-detalhes">
                 <span class="aluno-nome">{{ aluno.nome_aluno }}</span>
                 <small v-if="aluno.rgm" class="aluno-rgm">RGM: {{ aluno.rgm }}</small>
+                <small class="aluno-pontuacao">📊 Pontuação: {{ calcularPontuacao(aluno) }}</small>
               </div>
             </div>
             <button
@@ -145,11 +167,11 @@
             </button>
           </div>
         </div>
-        </div>
+      </div>
     </template>
 
     <div v-else class="error-state">
-      <p> Erro ao carregar sala</p>
+      <p>❌ Erro ao carregar sala</p>
       <button @click="voltarParaSalas" class="btn btn-voltar">← Voltar</button>
     </div>
 
@@ -177,7 +199,6 @@
 </template>
 
 <script>
-// O <script> permanece exatamente igual à versão anterior (com a lógica de exclusão)
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
@@ -209,7 +230,6 @@ export default {
     const carregarSala = async () => {
       const salaId = route.params.id;
       try {
-        //const response = await axios.get(`http://localhost:3000/salas/${salaId}`);
         const response = await axios.get(`${API_URL}/salas/${salaId}`);
         if (response.data.success) {
           sala.value = response.data.sala;
@@ -228,14 +248,10 @@ export default {
       if (!sala.value || !usuario.value.id) return;
       carregandoAlunos.value = true;
       try {
-        // const response = await axios.get(
-        //   `http://localhost:3000/salas/${sala.value.id}/alunos?professor_id=${usuario.value.id}`
-        // );
         const response = await axios.get(
-      `${API_URL}/salas/${sala.value.id}/alunos?professor_id=${usuario.value.id}`
-    );
+          `${API_URL}/salas/${sala.value.id}/alunos?professor_id=${usuario.value.id}`
+        );
         if (response.data.success) {
-          // Garante que o RGM seja tratado como string ou null
           alunos.value = response.data.alunos.map(aluno => ({
             ...aluno,
             rgm: aluno.rgm ? String(aluno.rgm) : null
@@ -253,78 +269,92 @@ export default {
       }
     };
 
-    const organizarGrupos = () => {
-      if (alunos.value.length === 0) return;
-      lideres.value = {};
-      const alunosComChave = alunos.value.map(aluno => ({
-        ...aluno,
-        chaveAleatoria: Math.random()
-      }));
-      let alunosOrdenados;
-      switch (algoritmoSelecionado.value) {
-        case 'bubble':
-          alunosOrdenados = bubbleSort([...alunosComChave]);
-          break;
-        case 'quick':
-          alunosOrdenados = quickSort([...alunosComChave]);
-          break;
-        case 'merge':
-          alunosOrdenados = mergeSort([...alunosComChave]);
-          break;
-        case 'insertion':
-          alunosOrdenados = insertionSort([...alunosComChave]);
-          break;
-        default:
-          alunosOrdenados = alunosComChave;
-      }
-      grupos.value = [];
-      for (let i = 0; i < alunosOrdenados.length; i += alunosPorGrupo.value) {
-        grupos.value.push(alunosOrdenados.slice(i, i + alunosPorGrupo.value));
-      }
+    // Função para calcular pontuação de um aluno
+    const calcularPontuacao = (aluno) => {
+      let pontos = 0;
+      
+      if (!aluno.questionario) return 0;
+      
+      const q = aluno.questionario;
+      
+      // Perguntas simples (1 ponto cada)
+      if (q.disponibilidade_reunioes) pontos += 1;
+      if (q.mais_um_ano_faculdade) pontos += 1;
+      
+      // Papel (1 ponto por opção marcada)
+      if (q.papel_organizacao) pontos += 1;
+      if (q.papel_apresentar) pontos += 1;
+      if (q.papel_pesquisar) pontos += 1;
+      if (q.papel_preparar_apresentacao) pontos += 1;
+      
+      // Perfil (1 ponto por opção marcada)
+      if (q.perfil_extrovertido) pontos += 1;
+      if (q.perfil_equilibrado) pontos += 1;
+      if (q.perfil_mao_massa) pontos += 1;
+      if (q.perfil_habilidade_tecnica) pontos += 1;
+      
+      return pontos;
     };
-    const bubbleSort = (arr) => {
+
+    // ========== ALGORITMOS DE ORDENAÇÃO POR PONTUAÇÃO ==========
+
+    const bubbleSortPontuacao = (arr) => {
       const n = arr.length;
       for (let i = 0; i < n - 1; i++) {
         for (let j = 0; j < n - i - 1; j++) {
-          if (arr[j].chaveAleatoria > arr[j + 1].chaveAleatoria) {
+          // Ordem decrescente (maior pontuação primeiro)
+          if (arr[j].pontuacao < arr[j + 1].pontuacao) {
             [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
           }
         }
       }
       return arr;
     };
-    const quickSort = (arr) => {
+
+    const quickSortPontuacao = (arr) => {
       if (arr.length <= 1) return arr;
+      
       const pivot = arr[Math.floor(arr.length / 2)];
-      const left = arr.filter(x => x.chaveAleatoria < pivot.chaveAleatoria);
-      const middle = arr.filter(x => x.chaveAleatoria === pivot.chaveAleatoria);
-      const right = arr.filter(x => x.chaveAleatoria > pivot.chaveAleatoria);
-      return [...quickSort(left), ...middle, ...quickSort(right)];
+      const left = arr.filter(x => x.pontuacao > pivot.pontuacao);
+      const middle = arr.filter(x => x.pontuacao === pivot.pontuacao);
+      const right = arr.filter(x => x.pontuacao < pivot.pontuacao);
+      
+      return [...quickSortPontuacao(left), ...middle, ...quickSortPontuacao(right)];
     };
-    const mergeSort = (arr) => {
+
+    const mergeSortPontuacao = (arr) => {
       if (arr.length <= 1) return arr;
+      
       const mid = Math.floor(arr.length / 2);
-      const left = mergeSort(arr.slice(0, mid));
-      const right = mergeSort(arr.slice(mid));
-      return merge(left, right);
+      const left = mergeSortPontuacao(arr.slice(0, mid));
+      const right = mergeSortPontuacao(arr.slice(mid));
+      
+      return mergePontuacao(left, right);
     };
-    const merge = (left, right) => {
+
+    const mergePontuacao = (left, right) => {
       const result = [];
       let i = 0, j = 0;
+      
       while (i < left.length && j < right.length) {
-        if (left[i].chaveAleatoria <= right[j].chaveAleatoria) {
+        // Ordem decrescente
+        if (left[i].pontuacao >= right[j].pontuacao) {
           result.push(left[i++]);
         } else {
           result.push(right[j++]);
         }
       }
+      
       return [...result, ...left.slice(i), ...right.slice(j)];
     };
-    const insertionSort = (arr) => {
+
+    const insertionSortPontuacao = (arr) => {
       for (let i = 1; i < arr.length; i++) {
         const key = arr[i];
         let j = i - 1;
-        while (j >= 0 && arr[j].chaveAleatoria > key.chaveAleatoria) {
+        
+        // Ordem decrescente
+        while (j >= 0 && arr[j].pontuacao < key.pontuacao) {
           arr[j + 1] = arr[j];
           j--;
         }
@@ -332,6 +362,92 @@ export default {
       }
       return arr;
     };
+
+    // ========== FUNÇÃO DE ORDENAÇÃO PRINCIPAL ==========
+
+    const ordenarPorPontuacao = () => {
+      // Cria cópia dos alunos com suas pontuações
+      const alunosComPontuacao = alunos.value.map(aluno => ({
+        ...aluno,
+        pontuacao: calcularPontuacao(aluno)
+      }));
+      
+      let alunosOrdenados;
+      
+      switch (algoritmoSelecionado.value) {
+        case 'bubble':
+          alunosOrdenados = bubbleSortPontuacao([...alunosComPontuacao]);
+          break;
+        case 'quick':
+          alunosOrdenados = quickSortPontuacao([...alunosComPontuacao]);
+          break;
+        case 'merge':
+          alunosOrdenados = mergeSortPontuacao([...alunosComPontuacao]);
+          break;
+        case 'insertion':
+          alunosOrdenados = insertionSortPontuacao([...alunosComPontuacao]);
+          break;
+        default:
+          alunosOrdenados = alunosComPontuacao;
+      }
+      
+      return alunosOrdenados;
+    };
+
+    // ========== ALGORITMO ZIG-ZAG ==========
+
+    const aplicarZigZag = (alunosOrdenados) => {
+      const totalAlunos = alunosOrdenados.length;
+      const tamanhoGrupo = alunosPorGrupo.value;
+      const numeroGrupos = Math.ceil(totalAlunos / tamanhoGrupo);
+      
+      // Inicializa grupos vazios
+      const gruposFormados = Array.from({ length: numeroGrupos }, () => []);
+      
+      // Distribui alunos em zig-zag
+      let grupoAtual = 0;
+      let direcao = 1; // 1 para frente, -1 para trás
+      
+      for (let i = 0; i < totalAlunos; i++) {
+        gruposFormados[grupoAtual].push(alunosOrdenados[i]);
+        
+        // Muda de grupo
+        if (direcao === 1) {
+          if (grupoAtual === numeroGrupos - 1) {
+            direcao = -1; // Inverte direção
+          } else {
+            grupoAtual++;
+          }
+        } else {
+          if (grupoAtual === 0) {
+            direcao = 1; // Inverte direção
+          } else {
+            grupoAtual--;
+          }
+        }
+      }
+      
+      return gruposFormados;
+    };
+
+    // ========== FUNÇÃO PRINCIPAL DE ORGANIZAÇÃO ==========
+
+    const organizarGrupos = () => {
+      if (alunos.value.length === 0) return;
+      
+      lideres.value = {};
+      
+      // Passo 1: Ordenar alunos por pontuação usando o algoritmo selecionado
+      const alunosOrdenados = ordenarPorPontuacao();
+      
+      // Passo 2: Aplicar Zig-Zag
+      const gruposZigZag = aplicarZigZag(alunosOrdenados);
+      
+      grupos.value = gruposZigZag;
+    };
+
+    // ========== FUNÇÕES AUXILIARES ==========
+
     const getNomeAlgoritmo = () => {
       const nomes = {
         bubble: 'Bubble Sort',
@@ -341,6 +457,7 @@ export default {
       };
       return nomes[algoritmoSelecionado.value];
     };
+
     const getIniciais = (nome) => {
       if (!nome) return '??';
       return nome
@@ -349,6 +466,12 @@ export default {
         .slice(0, 2)
         .join('')
         .toUpperCase();
+    };
+
+    const calcularPontuacaoMedia = (grupo) => {
+      if (grupo.length === 0) return 0;
+      const soma = grupo.reduce((acc, aluno) => acc + (aluno.pontuacao || 0), 0);
+      return (soma / grupo.length).toFixed(1);
     };
 
     const salvarOrganizacao = async () => {
@@ -363,8 +486,8 @@ export default {
           })),
           data: new Date().toISOString()
         };
-        //const response = await axios.post('http://localhost:3000/organizacoes', organizacao);
-          const response = await axios.post(`${API_URL}/organizacoes`, organizacao);
+        
+        const response = await axios.post(`${API_URL}/organizacoes`, organizacao);
 
         if (response.data.success) {
           alert('Organização salva com sucesso!');
@@ -374,17 +497,21 @@ export default {
         alert('Erro ao salvar organização. Tente novamente.');
       }
     };
+
     const exportarPDF = () => {
       alert('Funcionalidade de exportação em desenvolvimento');
     };
+
     const reorganizar = () => {
       grupos.value = [];
       lideres.value = {};
       organizarGrupos();
     };
+
     const voltarParaSalas = () => {
       router.push({ name: 'TelaSalas' });
     };
+
     const definirLider = (grupoIndex, alunoId) => {
       lideres.value[grupoIndex] = alunoId;
     };
@@ -392,12 +519,9 @@ export default {
     const carregarUltimaOrganizacao = async () => {
       if (!sala.value) return;
       try {
-        // const response = await axios.get(
-        //   `http://localhost:3000/salas/${sala.value.id}/ultima-organizacao`
-        // );
         const response = await axios.get(
-      `${API_URL}/salas/${sala.value.id}/ultima-organizacao`
-    );
+          `${API_URL}/salas/${sala.value.id}/ultima-organizacao`
+        );
         if (response.data.success && response.data.organizacao) {
           const org = response.data.organizacao;
           algoritmoSelecionado.value = org.algoritmo;
@@ -406,9 +530,17 @@ export default {
             const novosLideres = {};
             org.grupos_json.forEach((grupo, index) => {
               const alunosDoGrupo = grupo.alunos.map(alunoId => {
-                return alunos.value.find(a => a.id === alunoId) || {
+                const alunoEncontrado = alunos.value.find(a => a.id === alunoId);
+                if (alunoEncontrado) {
+                  return {
+                    ...alunoEncontrado,
+                    pontuacao: calcularPontuacao(alunoEncontrado)
+                  };
+                }
+                return {
                   id: alunoId,
-                  nome_aluno: 'Aluno não encontrado'
+                  nome_aluno: 'Aluno não encontrado',
+                  pontuacao: 0
                 };
               });
               novosGrupos.push(alunosDoGrupo);
@@ -440,22 +572,22 @@ export default {
       iniciandoExclusao.value = true;
       try {
         const alunoId = alunoParaExcluir.value.id;
-        // await axios.delete(`http://localhost:3000/alunos/${alunoId}`, {
-        //   data: { professor_id: usuario.value.id }
-        // });
-         await axios.delete(`${API_URL}/alunos/${alunoId}`, {
-      data: { professor_id: usuario.value.id }
-    });
+        await axios.delete(`${API_URL}/alunos/${alunoId}`, {
+          data: { professor_id: usuario.value.id }
+        });
+        
         alunos.value = alunos.value.filter(a => a.id !== alunoId);
         grupos.value = grupos.value.map(grupo =>
           grupo.filter(a => a.id !== alunoId)
         );
         grupos.value = grupos.value.filter(grupo => grupo.length > 0);
+        
         for (const grupoIndex in lideres.value) {
           if (lideres.value[grupoIndex] === alunoId) {
             lideres.value[grupoIndex] = null;
           }
         }
+        
         alert('Aluno removido com sucesso!');
         cancelarExclusao();
       } catch (error) {
@@ -492,14 +624,15 @@ export default {
       iniciandoExclusao,
       iniciarExclusaoAluno,
       cancelarExclusao,
-      confirmarExclusao
+      confirmarExclusao,
+      calcularPontuacao,
+      calcularPontuacaoMedia
     };
   }
 };
 </script>
 
 <style scoped>
-/* O <style> permanece igual à versão anterior (com estilos de exclusão e RGM) */
 * {
   box-sizing: border-box;
 }
@@ -511,7 +644,6 @@ export default {
   padding: 15px;
 }
 
-/* Header Fixo e Compacto */
 .header-fixo {
   background: white;
   border-radius: 8px;
@@ -537,6 +669,12 @@ export default {
   color: #2c3e50;
 }
 
+.codigo-sala {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
 .badge-alunos {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -546,12 +684,6 @@ export default {
   font-weight: 600;
 }
 
-.acoes-header {
-  display: flex;
-  gap: 8px;
-}
-
-/* Botões Compactos */
 .btn {
   padding: 8px 16px;
   border: none;
@@ -565,6 +697,15 @@ export default {
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.btn-voltar {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-voltar:hover {
+  background: #5a6268;
 }
 
 .btn-salvar {
@@ -594,7 +735,6 @@ export default {
   background: #e0a800;
 }
 
-/* Config em Linha */
 .config-section {
   background: white;
   border-radius: 8px;
@@ -654,7 +794,25 @@ export default {
   cursor: not-allowed;
 }
 
-/* Grid de Grupos Compacto */
+.info-algoritmo {
+  margin-top: 12px;
+  padding: 10px;
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 6px;
+}
+
+.info-algoritmo p {
+  margin: 5px 0;
+  font-size: 13px;
+  color: #1976d2;
+}
+
+.descricao-zigzag {
+  font-size: 12px !important;
+  color: #666 !important;
+}
+
 .grupos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -692,7 +850,6 @@ export default {
   font-weight: 600;
 }
 
-/* Membros Compactos */
 .membros-lista {
   display: flex;
   flex-direction: column;
@@ -700,6 +857,9 @@ export default {
   margin-bottom: 10px;
   max-height: 400px;
   overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px 0;
 }
 
 .membro {
@@ -712,6 +872,11 @@ export default {
   align-items: center;
 }
 
+.membro-lider {
+  background: #fffbef;
+  border-left-color: #ffc107;
+}
+
 .membro-info {
   display: flex;
   flex-direction: column;
@@ -719,7 +884,7 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 150px; /* Ajuste conforme necessário */
+  max-width: 150px;
 }
 
 .membro-info strong {
@@ -735,12 +900,17 @@ export default {
   color: #6c757d;
 }
 
+.pontuacao-aluno {
+  color: #2196f3 !important;
+  font-weight: 600;
+}
+
 .tags {
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
   align-items: center;
-  flex-shrink: 0; /* Impede que os botões encolham */
+  flex-shrink: 0;
 }
 
 .tag {
@@ -750,41 +920,65 @@ export default {
   font-weight: 600;
 }
 
-.tag-tecnologia { background: #e3f2fd; color: #1976d2; }
-.tag-saúde { background: #f3e5f5; color: #7b1fa2; }
-.tag-educação { background: #fff3e0; color: #f57c00; }
-.tag-negócios { background: #e8f5e9; color: #388e3c; }
-.tag-arte { background: #fce4ec; color: #c2185b; }
-.tag-ciências { background: #e0f2f1; color: #00796b; }
-.tag-perfil { background: #f5f5f5; color: #616161; }
-
-/* Barra de Diversidade */
-.diversidade {
-  padding-top: 8px;
-  border-top: 1px solid #f0f0f0;
+.tag-perfil {
+  background: #f5f5f5;
+  color: #616161;
 }
 
-.diversidade span {
-  font-size: 11px;
+.tag-lider {
+  background: #ffc107;
+  color: #333;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.btn-definir-lider,
+.btn-excluir-aluno {
+  background: #e9ecef;
   color: #6c757d;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin-left: 4px;
+}
+
+.btn-definir-lider:hover {
+  background: #ffc107;
+  color: #333;
+  transform: scale(1.1);
+}
+
+.btn-excluir-aluno:hover {
+  background: #dc3545;
+  color: white;
+  transform: scale(1.1);
+}
+
+.estatisticas-grupo {
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 8px;
+}
+
+.stat-item {
+  font-size: 12px;
+  color: #2196f3;
   font-weight: 600;
 }
 
-.barra {
-  height: 6px;
-  background: #e9ecef;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 4px;
-}
-
-.barra-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  transition: width 0.5s;
-}
-
-/* Estado Vazio */
 .vazio {
   text-align: center;
   padding: 40px;
@@ -802,7 +996,131 @@ export default {
   margin: 0;
 }
 
-/* Modal */
+.hint {
+  margin-top: 10px !important;
+  font-size: 14px;
+}
+
+.lista-completa {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-top: 15px;
+}
+
+.lista-completa h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.alunos-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+}
+
+.aluno-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 6px;
+  border-left: 3px solid #6c757d;
+}
+
+.aluno-card-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.aluno-card-detalhes {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aluno-avatar {
+  background: #667eea;
+  color: white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.aluno-nome {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aluno-rgm {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.aluno-pontuacao {
+  font-size: 11px;
+  color: #2196f3;
+  font-weight: 600;
+}
+
+.btn-excluir-aluno-card {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-excluir-aluno-card:hover {
+  background: #e9ecef;
+  color: #dc3545;
+}
+
+.acoes-finais {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.acoes-finais .btn {
+  flex: 1;
+  min-width: 150px;
+}
+
+.info-organizacao {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #d4edda;
+  border-left: 4px solid #28a745;
+  border-radius: 6px;
+}
+
+.info-organizacao p {
+  margin: 5px 0;
+  color: #155724;
+  font-size: 14px;
+}
+
 .modal {
   position: fixed;
   top: 0;
@@ -842,7 +1160,7 @@ export default {
 }
 
 .btn-cancel,
-.btn-ok {
+.btn-danger {
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
@@ -855,203 +1173,71 @@ export default {
   background: #6c757d;
   color: white;
 }
+
 .btn-cancel:hover {
   background: #5a6268;
 }
 
-.btn-ok {
-  background: #667eea;
-  color: white;
-}
-
-/* Botão de Excluir do Modal */
 .btn-danger {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
   background: #dc3545;
   color: white;
   transition: all 0.2s;
 }
+
 .btn-danger:hover:not(:disabled) {
   background: #c82333;
 }
+
 .btn-danger:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-
-/* Estilo para o membro que é líder */
-.membro-lider {
-  background: #fffbef; /* Um amarelo-claro */
-  border-left-color: #ffc107; /* Borda amarela */
-}
-
-/* Tag para mostrar quem é o líder */
-.tag-lider {
-  background: #ffc107;
-  color: #333;
-  padding: 3px 8px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-}
-
-/* Botão base para ícones (líder e excluir) */
-.btn-definir-lider,
-.btn-excluir-aluno {
-  background: #e9ecef;
-  color: #6c757d;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  margin-left: 4px; /* Pequeno espaço */
-}
-
-.btn-definir-lider:hover {
-  background: #ffc107;
-  color: #333;
-  transform: scale(1.1);
-}
-
-.btn-excluir-aluno:hover {
-  background: #dc3545;
-  color: white;
-  transform: scale(1.1);
-}
-
-/* Estilos para a lista de alunos (antes de formar grupos) */
-.lista-completa {
+.loading-full,
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 40px;
   background: white;
   border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-top: 15px; /* Adicionado espaço */
-}
-.lista-completa h3 {
-  margin-top: 0;
-  margin-bottom: 10px; /* Adicionado espaço */
 }
 
-.alunos-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 10px;
-}
-
-.aluno-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f8f9fa;
-  padding: 10px;
-  border-radius: 6px;
-  border-left: 3px solid #6c757d;
-}
-
-.aluno-card-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  overflow: hidden; /* Evita quebra de layout */
-}
-
-.aluno-card-detalhes {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.aluno-avatar {
-  background: #667eea;
-  color: white;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.aluno-nome {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 14px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.aluno-rgm {
-  font-size: 12px;
-  color: #6c757d;
-}
-
-.btn-excluir-aluno-card {
-  background: none;
-  border: none;
-  font-size: 16px;
-  color: #6c757d;
-  cursor: pointer;
-  padding: 5px;
-  border-radius: 50%;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-.btn-excluir-aluno-card:hover {
-  background: #e9ecef;
-  color: #dc3545;
-}
-
-
-/* Responsivo */
 @media (max-width: 768px) {
   .header-fixo {
     flex-direction: column;
     align-items: stretch;
   }
-  .acoes-header {
-    width: 100%;
-  }
-  .acoes-header .btn {
-    flex: 1;
-  }
+  
   .config-row {
     flex-direction: column;
   }
+  
   .config-item {
     width: 100%;
   }
+  
   .btn-gerar {
     width: 100%;
   }
+  
   .grupos-grid {
     grid-template-columns: 1fr;
   }
+  
   .alunos-cards {
     grid-template-columns: 1fr;
   }
+  
   .membro-info {
-    max-width: calc(100% - 100px); /* Ajuste dinâmico */
+    max-width: calc(100% - 100px);
+  }
+  
+  .acoes-finais {
+    flex-direction: column;
+  }
+  
+  .acoes-finais .btn {
+    width: 100%;
   }
 }
 </style>
