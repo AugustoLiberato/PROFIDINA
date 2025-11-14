@@ -95,7 +95,7 @@
             <div class="info-message">
               <p>Um código de verificação foi enviado para:</p>
               <p class="email-highlight">{{ email }}</p>
-              <p class="small-text">Verifique sua caixa de entrada e spam</p>
+              <p class="small-text">Verifique o SPAM ou LIXO ELETRONICO(Outlook)</p>
             </div>
           
             <div class='label-float'>
