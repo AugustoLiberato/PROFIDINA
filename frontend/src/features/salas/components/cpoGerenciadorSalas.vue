@@ -168,6 +168,7 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import API_URL from '@/config/api.js';
+import APP_URL from '@/config/app.js'; // ← ADICIONAR ESTA LINHA
 import QRCode from 'qrcode';
 
 export default {
@@ -182,7 +183,6 @@ export default {
     const tipoMensagem = ref('');
     const salaParaExcluir = ref(null);
     
-    // Novas variáveis para o QR Code
     const salaQRCode = ref(null);
     const qrCanvas = ref(null);
     const urlParaQRCode = ref('');
@@ -317,10 +317,10 @@ export default {
       });
     };
 
-    const gerarQRCode = (sala) => {
-      const baseUrl = "https://profidina-7y65.vercel.app/entrar-sala";
-      urlParaQRCode.value = `${baseUrl}?codigo=${sala.codigo_sala}`;
-      salaQRCode.value = sala; // Abre o modal
+     const gerarQRCode = (sala) => {
+      // MODIFICAR ESTA FUNÇÃO:
+      urlParaQRCode.value = `${APP_URL}/entrar-sala?codigo=${sala.codigo_sala}`;
+      salaQRCode.value = sala;
     };
 
     // Observa a variável salaQRCode. Quando ela for preenchida,
@@ -347,7 +347,7 @@ export default {
       carregarSalas();
     });
 
-    return {
+return {
       salas,
       mostrarFormCriar,
       salaEditando,
@@ -366,7 +366,6 @@ export default {
       salaParaExcluir,
       confirmarExclusao,
       executarExclusao,
-      // Retornos para o QR Code
       salaQRCode,
       qrCanvas,
       urlParaQRCode
