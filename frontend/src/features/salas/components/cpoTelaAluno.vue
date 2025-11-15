@@ -58,7 +58,7 @@
       <div v-if="etapa === 2" class="form-content">
         <h3>📋 Questionário de Perfil</h3>
         <p class="subtitle">
-          NÃO há OBRIGATORIEDADE DE RESPOSTA, DEIXE EM BRANCO CASO VOCÊ NÃO SE ENCAIXE
+           NÃO HÁ OBRIGATORIEDADE DE RESPOSTA, DEIXE EM BRANCO CASO VOCÊ NÃO SE ENCAIXE EM NENHUMA DAS ALTERNATIVAS.
         </p>
 
         <!-- Pergunta 1: Disponibilidade para reuniões -->
