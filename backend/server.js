@@ -4,8 +4,10 @@ import pkg from 'pg';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 import sgMail from '@sendgrid/mail';
+
+
+
 
 dotenv.config();
 const { Pool } = pkg;
@@ -124,6 +126,30 @@ app.get('/create-tables', createTables);
 app.post('/create-tables', createTables);
 
 // === ROTAS DE AUTENTICAÇÃO ===
+// Configurar Resend
+
+
+// === ROTAS DE AUTENTICAÇÃO ===
+import nodemailer from 'nodemailer';
+
+// Configurar transporter baseado no ambiente
+let emailTransporter;
+
+if (process.env.NODE_ENV === 'production') {
+  // Produção: usar SendGrid API (não SMTP!)
+  console.log('📧 Usando SendGrid API para emails (produção)');
+} else {
+  // Desenvolvimento: usar Gmail SMTP
+  emailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD
+    }
+  });
+  console.log('📧 Usando Gmail SMTP para emails (desenvolvimento)');
+}
+
 app.post('/enviarCodigoVerificacao', async (req, res) => {
   const { email, username } = req.body;
   if (!email || !username) return res.status(400).json({ error: 'Email e username são obrigatórios' });
@@ -143,58 +169,111 @@ app.post('/enviarCodigoVerificacao', async (req, res) => {
       [email, username, code, expiresAt]
     );
     
-    const hasSendGrid = process.env.SENDGRID_API_KEY && 
-                        process.env.SENDGRID_API_KEY.length > 0 && 
-                        process.env.SENDGRID_API_KEY.startsWith('SG.');
+    const emailHTML = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #48c9f4 0%, #272262 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h1 style="margin: 0; color: #ffffff; font-size: 28px;">🎓 Profidina Ágil</h1>
+    <p style="margin: 8px 0 0 0; color: #e0e0e0; font-size: 14px;">Sistema de Organização de Salas</p>
+  </div>
+  
+  <div style="background: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+    <h2 style="color: #272262; margin-top: 0;">Olá, ${username}! 👋</h2>
+    <p>Bem-vindo ao Profidina Ágil! Use o código abaixo para confirmar seu cadastro:</p>
     
-    if (hasSendGrid) {
-      try {
-        await sgMail.send({
-          from: {
-            email: 'zorobabilo@gmail.com',
-            name: 'Profidina Ágil'
-          },
-          to: email,
-          subject: 'Código de Verificação - Profidina Ágil',
-          html: `<div style="font-family:Arial;max-width:600px;margin:auto;padding:20px">
-            <div style="background:linear-gradient(135deg,#48c9f4,#272262);padding:30px;text-align:center;border-radius:10px 10px 0 0">
-              <h1 style="color:#fff;margin:0;font-size:28px">Profidina Ágil</h1>
-            </div>
-            <div style="background:#f8f9fa;padding:40px 30px;border-radius:0 0 10px 10px">
-              <h2 style="color:#272262;margin-top:0">Bem-vindo, ${username}! 🎓</h2>
-              <p>Use o código:</p>
-              <div style="background:#fff;padding:25px;text-align:center;margin:30px 0;border-radius:8px;border:2px dashed #48c9f4">
-                <div style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#272262;font-family:'Courier New',monospace">${code}</div>
-              </div>
-              <p style="color:#856404">⏱️ Expira em 10 minutos</p>
-            </div>
-          </div>`
-        });
-        console.log(` Email enviado para ${email}`);
-      } catch (emailError) {
-        console.error(' Erro ao enviar email:', emailError);
-        return res.status(500).json({ error: 'Erro ao enviar email de verificação' });
-      }
-    } else {
-      console.log(`\n${'='.repeat(60)}`);
-      console.log(` MODO DESENVOLVIMENTO - SendGrid não configurado`);
-      console.log(` Email: ${email}`);
-      console.log(` Username: ${username}`);
-      console.log(` CÓDIGO DE VERIFICAÇÃO: ${code}`);
-      console.log(`⏱ Expira em: 10 minutos`);
-      console.log(` Copie o código acima e cole na tela de verificação`);
-      console.log(`${'='.repeat(60)}\n`);
-    }
+    <div style="background: #f8f9fa; border: 2px dashed #48c9f4; border-radius: 8px; padding: 25px; text-align: center; margin: 25px 0;">
+      <p style="margin: 0 0 8px 0; color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Código de Verificação</p>
+      <p style="margin: 0; font-size: 36px; font-weight: bold; color: #272262; letter-spacing: 8px; font-family: monospace;">${code}</p>
+    </div>
+    
+    <div style="background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; padding: 12px 15px; margin: 20px 0;">
+      <p style="margin: 0; color: #856404; font-size: 14px;"><strong>⏰ Validade:</strong> Este código expira em 10 minutos.</p>
+    </div>
+    
+    <p style="color: #666; font-size: 14px;">Se você não solicitou este cadastro, ignore este email.</p>
+    <p style="margin-top: 20px; color: #666; font-size: 14px;">Atenciosamente,<br><strong style="color: #272262;">Equipe Profidina Ágil</strong></p>
+  </div>
+  
+  <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+    <p style="margin: 0;">Este é um email automático, não responda.</p>
+    <p style="margin: 5px 0 0 0;">© ${new Date().getFullYear()} Profidina Ágil - TCC</p>
+  </div>
+</body>
+</html>
+    `;
+
+    const emailText = `
+Olá, ${username}!
+
+Bem-vindo ao Profidina Ágil!
+
+Seu código de verificação é: ${code}
+
+Este código é válido por 10 minutos.
+
+Se você não solicitou este cadastro, ignore este email.
+
+---
+Atenciosamente,
+Equipe Profidina Ágil
+© ${new Date().getFullYear()} Profidina Ágil
+    `.trim();
+
+    try {
+  if (process.env.NODE_ENV === 'production') {
+    //  Produção: usar SendGrid API (HTTP)
+    const msg = {
+      to: email,
+      from: {
+        email: 'zorobabilo@gmail.com',
+        name: 'Profidina Ágil'
+      },
+      subject: 'Código de Verificação - Profidina Ágil',
+      html: emailHTML,
+      text: emailText
+    };
+    
+    await sgMail.send(msg);
+    console.log(` Email enviado via SendGrid API para ${email}`);
+    
+  } else {
+    // Desenvolvimento: usar Gmail SMTP
+    await emailTransporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: 'Código de Verificação - Profidina Ágil',
+      html: emailHTML,
+      text: emailText
+    });
+    
+    console.log(` Email enviado via Gmail para ${email}`);
+  }
+  
+} catch (emailError) {
+  console.error(' Erro ao enviar email:', emailError);
+  return res.status(500).json({ 
+    success: false,
+    error: 'Erro ao enviar email. Tente novamente.' 
+  });
+}
     
     res.json({ 
       success: true, 
-      message: 'Código enviado com sucesso',
-      code: !hasSendGrid ? code : undefined
+      message: 'Código enviado! Verifique sua caixa de entrada.',
+      code: process.env.NODE_ENV !== 'production' ? code : undefined
     });
     
   } catch (error) {
-    console.error(' Erro ao enviar código:', error);
-    res.status(500).json({ error: 'Erro ao enviar código de verificação' });
+    console.error('❌ Erro ao enviar código:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Erro ao processar solicitação.' 
+    });
   }
 });
 
