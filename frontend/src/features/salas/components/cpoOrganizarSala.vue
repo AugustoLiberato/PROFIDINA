@@ -1,5 +1,8 @@
 <template>
   <div class="tela-organizacao">
+    <div v-if="mostrarMensagemSucesso" class="mensagem-sucesso">
+      {{ mensagemSucesso }}
+    </div>
     <div v-if="carregandoSala" class="loading-full">
       <p>⏳ Carregando sala...</p>
     </div>
@@ -43,7 +46,7 @@
           </div>
 
           <button @click="organizarGrupos" class="btn btn-gerar" :disabled="alunos.length === 0">
-            🎲 Organizar Grupos com Zig-Zag
+            Organizar Grupos
           </button>
         </div>
         
@@ -138,9 +141,9 @@
           <button @click="salvarOrganizacao" class="btn btn-salvar">
             💾 Salvar Organização
           </button>
-          <button @click="exportarPDF" class="btn btn-exportar">
+          <!-- <button @click="exportarPDF" class="btn btn-exportar">
             📄 Exportar PDF
-          </button>
+          </button> -->
           <button @click="reorganizar" class="btn btn-reorganizar">
             🔄 Reorganizar
           </button>
@@ -220,6 +223,9 @@ export default {
     const carregandoSala = ref(true);
     const carregandoAlunos = ref(false);
     const lideres = ref({});
+
+    const mostrarMensagemSucesso = ref(false);
+    const mensagemSucesso = ref('');
 
     const mostrarModalExcluir = ref(false);
     const alunoParaExcluir = ref(null);
@@ -490,7 +496,11 @@ export default {
         const response = await axios.post(`${API_URL}/organizacoes`, organizacao);
 
         if (response.data.success) {
-          alert('Organização salva com sucesso!');
+         mensagemSucesso.value = 'Organização salva com sucesso!';
+        mostrarMensagemSucesso.value = true;
+        setTimeout(() => {
+          mostrarMensagemSucesso.value = false;
+        }, 3000);
         }
       } catch (error) {
         console.error('Erro ao salvar:', error);
@@ -498,9 +508,9 @@ export default {
       }
     };
 
-    const exportarPDF = () => {
-      alert('Funcionalidade de exportação em desenvolvimento');
-    };
+    // const exportarPDF = () => {
+    //   alert('Funcionalidade de exportação em desenvolvimento');
+    // };
 
     const reorganizar = () => {
       grupos.value = [];
@@ -614,7 +624,7 @@ export default {
       getNomeAlgoritmo,
       getIniciais,
       salvarOrganizacao,
-      exportarPDF,
+      //exportarPDF,
       reorganizar,
       voltarParaSalas,
       lideres,
@@ -626,7 +636,9 @@ export default {
       cancelarExclusao,
       confirmarExclusao,
       calcularPontuacao,
-      calcularPontuacaoMedia
+      calcularPontuacaoMedia,
+      mostrarMensagemSucesso,
+      mensagemSucesso
     };
   }
 };
@@ -1238,6 +1250,40 @@ export default {
   
   .acoes-finais .btn {
     width: 100%;
+  }
+}
+
+.mensagem-sucesso {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #2196f3;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  font-weight: 600;
+  font-size: 14px;
+  z-index: 2000;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .mensagem-sucesso {
+    right: 10px;
+    left: 10px;
+    text-align: center;
   }
 }
 </style>

@@ -53,12 +53,12 @@
           </div>
 
           <div class="perfil-actions">
-            <button class="btn-secondary" @click="editarPerfil">
+            <!-- <button class="btn-secondary" @click="editarPerfil">
               Editar Perfil
-            </button>
-            <button class="btn-secondary" @click="alterarSenha">
+            </button> -->
+            <!-- <button class="btn-secondary" @click="alterarSenha">
               Alterar Senha
-            </button>
+            </button> -->
           </div>
         </div>
       </div>
@@ -88,13 +88,13 @@ export default {
     };
 
     // Funções para as ações do perfil (placeholder)
-    const editarPerfil = () => {
-      alert('Funcionalidade em desenvolvimento');
-    };
+    // const editarPerfil = () => {
+    //   alert('Funcionalidade em desenvolvimento');
+    // };
 
-    const alterarSenha = () => {
-      alert('Funcionalidade em desenvolvimento');
-    };
+    // const alterarSenha = () => {
+    //   alert('Funcionalidade em desenvolvimento');
+    // };
 
     return {
       abaAtiva,
@@ -105,8 +105,8 @@ export default {
         return new Date().toLocaleDateString('pt-BR');
       }),
       logout,
-      editarPerfil,
-      alterarSenha
+     // editarPerfil,
+      //alterarSenha
     };
   },
 };

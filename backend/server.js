@@ -116,7 +116,7 @@ const createTables = async (req, res) => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_organizacoes_sala ON organizacoes(sala_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_alunos_questionario ON sala_alunos USING GIN (questionario)`);
     
-    res.json({ success: true, message: '✅ Tabelas criadas com sucesso!' });
+    res.json({ success: true, message: ' Tabelas criadas com sucesso!' });
   } catch (error) {
     console.error(' Erro ao criar tabelas:', error);
     res.status(500).json({ success: false, error: 'Erro ao criar tabelas', details: error.message });
@@ -137,7 +137,7 @@ let emailTransporter;
 
 if (process.env.NODE_ENV === 'production') {
   // Produção: usar SendGrid API (não SMTP!)
-  console.log('📧 Usando SendGrid API para emails (produção)');
+  console.log(' Usando SendGrid API para emails (produção)');
 } else {
   // Desenvolvimento: usar Gmail SMTP
   emailTransporter = nodemailer.createTransport({
@@ -147,7 +147,7 @@ if (process.env.NODE_ENV === 'production') {
       pass: process.env.GMAIL_APP_PASSWORD
     }
   });
-  console.log('📧 Usando Gmail SMTP para emails (desenvolvimento)');
+  console.log(' Usando Gmail SMTP para emails (desenvolvimento)');
 }
 
 app.post('/enviarCodigoVerificacao', async (req, res) => {
@@ -269,7 +269,7 @@ Equipe Profidina Ágil
     });
     
   } catch (error) {
-    console.error('❌ Erro ao enviar código:', error);
+    console.error(' Erro ao enviar código:', error);
     res.status(500).json({ 
       success: false,
       error: 'Erro ao processar solicitação.' 
