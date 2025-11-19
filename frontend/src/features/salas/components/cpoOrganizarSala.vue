@@ -45,8 +45,8 @@
             </select>
           </div>
 
-          <button @click="organizarGrupos" class="btn btn-gerar" :disabled="alunos.length === 0">
-            Organizar Grupos
+          <button @click="organizarGrupos" class="btn btn-gerar" :disabled="alunos.length === 0 || organizacaoSalva">
+            {{ organizacaoSalva ? 'Organização Salva' : 'Organizar Grupos' }}
           </button>
         </div>
         
@@ -58,6 +58,13 @@
           <p class="descricao-zigzag">
             O Zig-Zag equilibra os grupos combinando alunos com maior pontuação 
             com alunos de menor pontuação
+          </p>
+          <!-- NOVO: Indicador se está salvo ou não -->
+          <p v-if="!organizacaoSalva" class="aviso-nao-salvo">
+            ⚠️ Organização temporária! Clique em "Salvar Organização" para persistir ou "Reorganizar" para gerar nova distribuição.
+          </p>
+          <p v-else class="aviso-salvo">
+            ✓ Organização salva! Para fazer alterações, clique em "Reorganizar".
           </p>
         </div>
       </div>
@@ -138,13 +145,13 @@
         </div>
 
         <div class="acoes-finais">
-          <button @click="salvarOrganizacao" class="btn btn-salvar">
-            💾 Salvar Organização
+          <button @click="salvarOrganizacao" class="btn btn-salvar" :disabled="grupos.length === 0 || organizacaoSalva">
+            💾 {{ organizacaoSalva ? '✓ Organização Salva' : 'Salvar Organização' }}
           </button>
           <!-- <button @click="exportarPDF" class="btn btn-exportar">
             📄 Exportar PDF
           </button> -->
-          <button @click="reorganizar" class="btn btn-reorganizar">
+          <button @click="reorganizar" class="btn btn-reorganizar" :disabled="grupos.length === 0">
             🔄 Reorganizar
           </button>
         </div>
@@ -223,6 +230,8 @@ export default {
     const carregandoSala = ref(true);
     const carregandoAlunos = ref(false);
     const lideres = ref({});
+    const organizacaoSalva = ref(false); // NOVO: Controla se a organização atual está salva
+    const primeiraVez = ref(true); // NOVO: Controla se é a primeira vez carregando a sala
 
     const mostrarMensagemSucesso = ref(false);
     const mensagemSucesso = ref('');
@@ -262,7 +271,11 @@ export default {
             ...aluno,
             rgm: aluno.rgm ? String(aluno.rgm) : null
           }));
-          await carregarUltimaOrganizacao();
+          // MODIFICADO: Só carrega última organização na primeira vez que entra na sala
+          if (primeiraVez.value) {
+            await carregarUltimaOrganizacao();
+            primeiraVez.value = false;
+          }
         } else {
           console.error('Erro ao carregar alunos:', response.data.error);
           alunos.value = [];
@@ -303,6 +316,16 @@ export default {
     };
 
     // ========== ALGORITMOS DE ORDENAÇÃO POR PONTUAÇÃO ==========
+
+    // Função auxiliar para embaralhar array (Fisher-Yates shuffle)
+    const embaralharArray = (arr) => {
+      const arrCopy = [...arr];
+      for (let i = arrCopy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arrCopy[i], arrCopy[j]] = [arrCopy[j], arrCopy[i]];
+      }
+      return arrCopy;
+    };
 
     const bubbleSortPontuacao = (arr) => {
       const n = arr.length;
@@ -378,23 +401,27 @@ export default {
         pontuacao: calcularPontuacao(aluno)
       }));
       
+      // IMPORTANTE: Embaralha os alunos ANTES de ordenar
+      // Isso garante que alunos com mesma pontuação sejam distribuídos de forma diferente a cada vez
+      const alunosEmbaralhados = embaralharArray(alunosComPontuacao);
+      
       let alunosOrdenados;
       
       switch (algoritmoSelecionado.value) {
         case 'bubble':
-          alunosOrdenados = bubbleSortPontuacao([...alunosComPontuacao]);
+          alunosOrdenados = bubbleSortPontuacao([...alunosEmbaralhados]);
           break;
         case 'quick':
-          alunosOrdenados = quickSortPontuacao([...alunosComPontuacao]);
+          alunosOrdenados = quickSortPontuacao([...alunosEmbaralhados]);
           break;
         case 'merge':
-          alunosOrdenados = mergeSortPontuacao([...alunosComPontuacao]);
+          alunosOrdenados = mergeSortPontuacao([...alunosEmbaralhados]);
           break;
         case 'insertion':
-          alunosOrdenados = insertionSortPontuacao([...alunosComPontuacao]);
+          alunosOrdenados = insertionSortPontuacao([...alunosEmbaralhados]);
           break;
         default:
-          alunosOrdenados = alunosComPontuacao;
+          alunosOrdenados = alunosEmbaralhados;
       }
       
       return alunosOrdenados;
@@ -441,6 +468,8 @@ export default {
     const organizarGrupos = () => {
       if (alunos.value.length === 0) return;
       
+      // IMPORTANTE: Sempre limpa os líderes ao reorganizar
+      // Isso garante que toda vez que clicar em "Organizar Grupos" será uma nova organização
       lideres.value = {};
       
       // Passo 1: Ordenar alunos por pontuação usando o algoritmo selecionado
@@ -449,7 +478,13 @@ export default {
       // Passo 2: Aplicar Zig-Zag
       const gruposZigZag = aplicarZigZag(alunosOrdenados);
       
+      // Passo 3: Atualizar grupos (SEMPRE sobrescreve o que tinha antes)
       grupos.value = gruposZigZag;
+      
+      // Passo 4: Marca como não salvo
+      organizacaoSalva.value = false;
+      
+      console.log('✓ Grupos reorganizados com sucesso! Total de grupos:', grupos.value.length);
     };
 
     // ========== FUNÇÕES AUXILIARES ==========
@@ -496,11 +531,14 @@ export default {
         const response = await axios.post(`${API_URL}/organizacoes`, organizacao);
 
         if (response.data.success) {
-         mensagemSucesso.value = 'Organização salva com sucesso!';
-        mostrarMensagemSucesso.value = true;
-        setTimeout(() => {
-          mostrarMensagemSucesso.value = false;
-        }, 3000);
+          // NOVO: Marca como salvo
+          organizacaoSalva.value = true;
+          
+          mensagemSucesso.value = 'Organização salva com sucesso!';
+          mostrarMensagemSucesso.value = true;
+          setTimeout(() => {
+            mostrarMensagemSucesso.value = false;
+          }, 3000);
         }
       } catch (error) {
         console.error('Erro ao salvar:', error);
@@ -513,8 +551,10 @@ export default {
     // };
 
     const reorganizar = () => {
-      grupos.value = [];
-      lideres.value = {};
+      // Limpa o flag de organização salva
+      organizacaoSalva.value = false;
+      
+      // Reorganiza os grupos
       organizarGrupos();
     };
 
@@ -524,6 +564,8 @@ export default {
 
     const definirLider = (grupoIndex, alunoId) => {
       lideres.value[grupoIndex] = alunoId;
+      // NOVO: Marca como não salvo ao alterar líder
+      organizacaoSalva.value = false;
     };
 
     const carregarUltimaOrganizacao = async () => {
@@ -560,6 +602,8 @@ export default {
             });
             grupos.value = novosGrupos;
             lideres.value = novosLideres;
+            // NOVO: Marca como salvo pois veio do banco
+            organizacaoSalva.value = true;
           }
         }
       } catch (error) {
@@ -596,6 +640,11 @@ export default {
           if (lideres.value[grupoIndex] === alunoId) {
             lideres.value[grupoIndex] = null;
           }
+        }
+        
+        // NOVO: Marca como não salvo após exclusão
+        if (grupos.value.length > 0) {
+          organizacaoSalva.value = false;
         }
         
         alert('Aluno removido com sucesso!');
@@ -638,7 +687,8 @@ export default {
       calcularPontuacao,
       calcularPontuacaoMedia,
       mostrarMensagemSucesso,
-      mensagemSucesso
+      mensagemSucesso,
+      organizacaoSalva // NOVO: Exporta para o template
     };
   }
 };
@@ -823,6 +873,28 @@ export default {
 .descricao-zigzag {
   font-size: 12px !important;
   color: #666 !important;
+}
+
+/* NOVO: Estilo para aviso de não salvo */
+.aviso-nao-salvo {
+  background: #fff3cd;
+  color: #856404 !important;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 4px solid #ffc107;
+  margin-top: 8px;
+  font-weight: 600 !important;
+}
+
+/* NOVO: Estilo para aviso de salvo */
+.aviso-salvo {
+  background: #d4edda;
+  color: #155724 !important;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 4px solid #28a745;
+  margin-top: 8px;
+  font-weight: 600 !important;
 }
 
 .grupos-grid {

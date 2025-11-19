@@ -20,6 +20,7 @@ app.use(cors({
     'http://localhost:5173',
     'http://localhost:8080',
     'http://localhost:3000',
+    'http://10.0.0.161:8080',
     'https://profidina.vercel.app',
     'https://profidina-7y65.vercel.app',
     'https://profidina-7y65-git-main-augustos-projects-30ec658f.vercel.app'
