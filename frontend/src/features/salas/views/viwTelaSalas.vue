@@ -3,7 +3,7 @@
     <!-- Header do usuário -->
     <header class="user-header">
       <div class="user-info">
-        <h1>Olá {{ name }}</h1>
+        <h1>Bem Vindo {{ name }}</h1>
         <p>{{ email }}</p>
       </div>
       <button @click="logout()" class="btn-logout">Sair</button>
@@ -15,25 +15,25 @@
         :class="['tab-button', { active: abaAtiva === 'salas' }]"
         @click="abaAtiva = 'salas'"
       >
-        📚 Minhas Salas
+        Ver Salas
       </button>
       <button 
         :class="['tab-button', { active: abaAtiva === 'perfil' }]"
         @click="abaAtiva = 'perfil'"
       >
-        👤 Perfil
+        Ver Perfil
       </button>
     </nav>
 
     <!-- Conteúdo das abas -->
     <main class="tab-content">
       <!-- Aba Salas -->
-      <div v-if="abaAtiva === 'salas'" class="tab-pane">
+      <div v-if="abaAtiva === 'salas'" class="tab-pane tab-pane-scrollable">
         <GerenciadorSalas />
       </div>
 
       <!-- Aba Perfil -->
-      <div v-if="abaAtiva === 'perfil'" class="tab-pane">
+      <div v-if="abaAtiva === 'perfil'" class="tab-pane tab-pane-scrollable">
         <div class="perfil-container">
           <h2>Informações do Perfil</h2>
           
@@ -87,15 +87,6 @@ export default {
       router.push({ name: "cpoConectarUsuario" });
     };
 
-    // Funções para as ações do perfil (placeholder)
-    // const editarPerfil = () => {
-    //   alert('Funcionalidade em desenvolvimento');
-    // };
-
-    // const alterarSenha = () => {
-    //   alert('Funcionalidade em desenvolvimento');
-    // };
-
     return {
       abaAtiva,
       name: computed(() => store.state.user.name || store.state.user.username),
@@ -105,8 +96,6 @@ export default {
         return new Date().toLocaleDateString('pt-BR');
       }),
       logout,
-     // editarPerfil,
-      //alterarSenha
     };
   },
 };
@@ -122,8 +111,12 @@ $dark: #343a40;
 
 .container-app {
   min-height: 100vh;
+  height: 100vh; // Adiciona altura fixa
   background: linear-gradient(135deg, #0029e0 0%, #00ddff 100%);
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; // Previne scroll no container principal
 }
 
 .user-header {
@@ -136,6 +129,7 @@ $dark: #343a40;
   padding: 20px 30px;
   margin-bottom: 20px;
   color: $white;
+  flex-shrink: 0; // Impede que o header encolha
 
   .user-info {
     h1 {
@@ -162,8 +156,7 @@ $dark: #343a40;
     transition: all 0.3s ease;
 
     &:hover {
-     // background: rgb(0, 195, 255);
-       background: rgb(0, 40, 52);
+      background: rgb(0, 40, 52);
       border-color: rgba(0, 9, 73, 0.926);
       transform: translateY(-2px);
       color: $primary;
@@ -173,20 +166,20 @@ $dark: #343a40;
 
 .tabs-nav {
   display: flex;
- // background: rgba(255, 255, 255, 0.1);
-   background: rgba(0, 17, 144, 0.926);
+  background: rgba(0, 17, 144, 0.926);
   backdrop-filter: blur(10px);
   border-radius: 12px;
   padding: 8px;
   margin-bottom: 20px;
   gap: 8px;
+  flex-shrink: 0; // Impede que as abas encolham
 }
 
 .tab-button {
   flex: 1;
   background: transparent;
   border: none;
- // color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.7);
   padding: 12px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -210,13 +203,44 @@ $dark: #343a40;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 12px;
-  min-height: 600px;
-  overflow: hidden;
+  flex: 1; // Ocupa todo o espaço disponível
+  overflow: hidden; // Previne scroll no container
+  display: flex;
+  flex-direction: column;
 }
 
 .tab-pane {
   padding: 20px;
   height: 100%;
+}
+
+// NOVA CLASSE PARA SCROLL
+.tab-pane-scrollable {
+  overflow-y: auto; // Adiciona scroll vertical
+  overflow-x: hidden; // Previne scroll horizontal
+  
+  // Estiliza a barra de rolagem para Chromium (Chrome, Edge, etc)
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 41, 224, 0.3);
+    border-radius: 10px;
+    
+    &:hover {
+      background: rgba(0, 41, 224, 0.5);
+    }
+  }
+
+  // Estiliza a barra de rolagem para Firefox
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 41, 224, 0.3) rgba(0, 0, 0, 0.05);
 }
 
 .perfil-container {

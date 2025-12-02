@@ -3,15 +3,18 @@
     <div v-if="mostrarMensagemSucesso" class="mensagem-sucesso">
       {{ mensagemSucesso }}
     </div>
+    <div v-if="mostrarMensagemExclusao" class="mensagem-sucesso-exclusao">
+      {{ mensagemSucesso }}
+    </div>
     <div v-if="carregandoSala" class="loading-full">
-      <p>⏳ Carregando sala...</p>
+      <p> Carregando sala...</p>
     </div>
 
     <template v-else-if="sala">
       <div class="header-fixo">
         <div class="info-sala">
           <button @click="voltarParaSalas" class="btn btn-voltar">
-            ← Voltar
+             Voltar
           </button>
           <h2>{{ sala.nome }}</h2>
         </div>
@@ -25,7 +28,7 @@
       <div class="config-section">
         <div class="config-row">
           <div class="config-item">
-            <label>Número de alunos por grupo:</label>
+            <label>Limite de estudantes por grupo:</label>
             <input 
               type="number" 
               v-model.number="alunosPorGrupo" 
@@ -34,14 +37,13 @@
               class="input-numero"
             />
           </div>
-
+<!-- bubble sort, selection sort, quicksort -->
           <div class="config-item">
             <label>Algoritmo de ordenação:</label>
             <select v-model="algoritmoSelecionado" class="select-algoritmo">
               <option value="bubble">Bubble Sort</option>
+              <option value="selection">Selection Sort</option>
               <option value="quick">Quick Sort</option>
-              <option value="merge">Merge Sort</option>
-              <option value="insertion">Insertion Sort</option>
             </select>
           </div>
 
@@ -52,32 +54,32 @@
         
         <div class="info-algoritmo" v-if="grupos.length > 0">
           <p>
-            ✓ Grupos organizados com <strong>{{ getNomeAlgoritmo() }}</strong> + 
+              Algoritmos: <strong>{{ getNomeAlgoritmo() }}</strong> + 
             <strong>Algoritmo Zig-Zag</strong>
           </p>
           <p class="descricao-zigzag">
             O Zig-Zag equilibra os grupos combinando alunos com maior pontuação 
             com alunos de menor pontuação
           </p>
-          <!-- NOVO: Indicador se está salvo ou não -->
+          
           <p v-if="!organizacaoSalva" class="aviso-nao-salvo">
-            ⚠️ Organização temporária! Clique em "Salvar Organização" para persistir ou "Reorganizar" para gerar nova distribuição.
+             Organização temporária! Clique em "Salvar Organização" para persistir ou "Reorganizar" para gerar nova distribuição.
           </p>
           <p v-else class="aviso-salvo">
-            ✓ Organização salva! Para fazer alterações, clique em "Reorganizar".
+             Organização salva! Para fazer alterações, clique em "Reorganizar".
           </p>
         </div>
       </div>
 
       <div class="alunos-section" v-if="carregandoAlunos">
         <div class="loading-state">
-          <p>⏳ Carregando alunos...</p>
+          <p> Carregando alunos...</p>
         </div>
       </div>
       
       <div class="alunos-section" v-else-if="alunos.length === 0">
         <div class="vazio">
-          <div class="icone">📚</div>
+          <div class="icone"></div>
           <p>Nenhum aluno na sala ainda</p>
           <p class="hint">Os alunos podem entrar usando o código: <strong>{{ sala.codigo_sala }}</strong></p>
         </div>
@@ -85,7 +87,7 @@
 
       <div class="grupos-container" v-if="grupos.length > 0">
         <div class="info-organizacao">
-          <p>✓ Total de {{ grupos.length }} grupos formados</p>
+          <p>  {{ grupos.length }} grupos formados</p>
         </div>
 
         <div class="grupos-grid">
@@ -109,36 +111,36 @@
                 <div class="membro-info">
                   <strong>{{ aluno.nome_aluno }}</strong>
                   <small v-if="aluno.rgm">RGM: {{ aluno.rgm }}</small>
-                  <small class="pontuacao-aluno">📊 Pontuação: {{ aluno.pontuacao || 0 }}</small>
+                  <small class="pontuacao-aluno"> Pontuação: {{ aluno.pontuacao || 0 }}</small>
                 </div>
 
                 <div class="tags">
-                  <span class="tag tag-perfil">{{ getIniciais(aluno.nome_aluno) }}</span>
+                  <!-- <span class="tag tag-perfil">{{ getIniciais(aluno.nome_aluno) }}</span> -->
 
-                  <span v-if="lideres[index] === aluno.id" class="tag-lider">👑 Líder</span>
+                  <span v-if="lideres[index] === aluno.id" class="tag-lider"> Líder</span>
                   <button
                     v-else
                     @click="definirLider(index, aluno.id)"
                     class="btn-definir-lider"
                     title="Tornar Líder"
                   >
-                    👑
+                    Escolher
                   </button>
 
                   <button
                     @click="iniciarExclusaoAluno(aluno)"
                     class="btn-excluir-aluno"
                     title="Excluir Aluno">
-                    🗑️
+                    Excluir
                   </button>
                 </div>
               </li>
             </ul>
 
-            <!-- Estatísticas do grupo -->
+            
             <div class="estatisticas-grupo">
               <span class="stat-item">
-                📊 Pontuação média: {{ calcularPontuacaoMedia(grupo) }}
+                 Pontuação média: {{ calcularPontuacaoMedia(grupo) }}
               </span>
             </div>
           </div>
@@ -146,13 +148,13 @@
 
         <div class="acoes-finais">
           <button @click="salvarOrganizacao" class="btn btn-salvar" :disabled="grupos.length === 0 || organizacaoSalva">
-            💾 {{ organizacaoSalva ? '✓ Organização Salva' : 'Salvar Organização' }}
+             {{ organizacaoSalva ? ' Organização Salva' : 'Salvar Organização' }}
           </button>
           <!-- <button @click="exportarPDF" class="btn btn-exportar">
-            📄 Exportar PDF
+             Exportar PDF
           </button> -->
           <button @click="reorganizar" class="btn btn-reorganizar" :disabled="grupos.length === 0">
-            🔄 Reorganizar
+             Reorganizar
           </button>
         </div>
       </div>
@@ -166,15 +168,15 @@
               <div class="aluno-card-detalhes">
                 <span class="aluno-nome">{{ aluno.nome_aluno }}</span>
                 <small v-if="aluno.rgm" class="aluno-rgm">RGM: {{ aluno.rgm }}</small>
-                <small class="aluno-pontuacao">📊 Pontuação: {{ calcularPontuacao(aluno) }}</small>
+                <small class="aluno-pontuacao"> Pontuação: {{ calcularPontuacao(aluno) }}</small>
               </div>
             </div>
-            <button
+            <!-- <button
               @click="iniciarExclusaoAluno(aluno)"
               class="btn-excluir-aluno-card"
               title="Excluir Aluno">
-              🗑️
-            </button>
+              Excluirrr
+            </button> -->
           </div>
         </div>
       </div>
@@ -230,10 +232,11 @@ export default {
     const carregandoSala = ref(true);
     const carregandoAlunos = ref(false);
     const lideres = ref({});
-    const organizacaoSalva = ref(false); // NOVO: Controla se a organização atual está salva
-    const primeiraVez = ref(true); // NOVO: Controla se é a primeira vez carregando a sala
+    const organizacaoSalva = ref(false);
+    const primeiraVez = ref(true);
 
     const mostrarMensagemSucesso = ref(false);
+    const mostrarMensagemExclusao = ref(false);
     const mensagemSucesso = ref('');
 
     const mostrarModalExcluir = ref(false);
@@ -271,7 +274,6 @@ export default {
             ...aluno,
             rgm: aluno.rgm ? String(aluno.rgm) : null
           }));
-          // MODIFICADO: Só carrega última organização na primeira vez que entra na sala
           if (primeiraVez.value) {
             await carregarUltimaOrganizacao();
             primeiraVez.value = false;
@@ -288,7 +290,6 @@ export default {
       }
     };
 
-    // Função para calcular pontuação de um aluno
     const calcularPontuacao = (aluno) => {
       let pontos = 0;
       
@@ -296,17 +297,14 @@ export default {
       
       const q = aluno.questionario;
       
-      // Perguntas simples (1 ponto cada)
       if (q.disponibilidade_reunioes) pontos += 1;
       if (q.mais_um_ano_faculdade) pontos += 1;
       
-      // Papel (1 ponto por opção marcada)
       if (q.papel_organizacao) pontos += 1;
       if (q.papel_apresentar) pontos += 1;
       if (q.papel_pesquisar) pontos += 1;
       if (q.papel_preparar_apresentacao) pontos += 1;
       
-      // Perfil (1 ponto por opção marcada)
       if (q.perfil_extrovertido) pontos += 1;
       if (q.perfil_equilibrado) pontos += 1;
       if (q.perfil_mao_massa) pontos += 1;
@@ -317,7 +315,6 @@ export default {
 
     // ========== ALGORITMOS DE ORDENAÇÃO POR PONTUAÇÃO ==========
 
-    // Função auxiliar para embaralhar array (Fisher-Yates shuffle)
     const embaralharArray = (arr) => {
       const arrCopy = [...arr];
       for (let i = arrCopy.length - 1; i > 0; i--) {
@@ -331,7 +328,6 @@ export default {
       const n = arr.length;
       for (let i = 0; i < n - 1; i++) {
         for (let j = 0; j < n - i - 1; j++) {
-          // Ordem decrescente (maior pontuação primeiro)
           if (arr[j].pontuacao < arr[j + 1].pontuacao) {
             [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
           }
@@ -361,12 +357,27 @@ export default {
       return mergePontuacao(left, right);
     };
 
+    const selectionSortPontuacao = (arr) => {
+      const n = arr.length;
+      for (let i = 0; i < n - 1; i++) {
+        let maxIdx = i;
+        for (let j = i + 1; j < n; j++) {
+          if (arr[j].pontuacao > arr[maxIdx].pontuacao) {
+            maxIdx = j;
+          }
+        }
+        if (maxIdx !== i) {
+          [arr[i], arr[maxIdx]] = [arr[maxIdx], arr[i]];
+        }
+      }
+      return arr;
+    };
+
     const mergePontuacao = (left, right) => {
       const result = [];
       let i = 0, j = 0;
       
       while (i < left.length && j < right.length) {
-        // Ordem decrescente
         if (left[i].pontuacao >= right[j].pontuacao) {
           result.push(left[i++]);
         } else {
@@ -382,7 +393,6 @@ export default {
         const key = arr[i];
         let j = i - 1;
         
-        // Ordem decrescente
         while (j >= 0 && arr[j].pontuacao < key.pontuacao) {
           arr[j + 1] = arr[j];
           j--;
@@ -392,42 +402,34 @@ export default {
       return arr;
     };
 
-    // ========== FUNÇÃO DE ORDENAÇÃO PRINCIPAL ==========
-
     const ordenarPorPontuacao = () => {
-      // Cria cópia dos alunos com suas pontuações
       const alunosComPontuacao = alunos.value.map(aluno => ({
         ...aluno,
         pontuacao: calcularPontuacao(aluno)
       }));
       
-      // IMPORTANTE: Embaralha os alunos ANTES de ordenar
-      // Isso garante que alunos com mesma pontuação sejam distribuídos de forma diferente a cada vez
       const alunosEmbaralhados = embaralharArray(alunosComPontuacao);
       
       let alunosOrdenados;
       
-      switch (algoritmoSelecionado.value) {
-        case 'bubble':
-          alunosOrdenados = bubbleSortPontuacao([...alunosEmbaralhados]);
-          break;
-        case 'quick':
-          alunosOrdenados = quickSortPontuacao([...alunosEmbaralhados]);
-          break;
-        case 'merge':
-          alunosOrdenados = mergeSortPontuacao([...alunosEmbaralhados]);
-          break;
-        case 'insertion':
-          alunosOrdenados = insertionSortPontuacao([...alunosEmbaralhados]);
-          break;
-        default:
-          alunosOrdenados = alunosEmbaralhados;
-      }
+        switch (algoritmoSelecionado.value) {
+          case 'bubble':
+            alunosOrdenados = bubbleSortPontuacao([...alunosEmbaralhados]);
+            break;
+          case 'selection':
+            alunosOrdenados = selectionSortPontuacao([...alunosEmbaralhados]);
+            break;
+          case 'quick':
+            alunosOrdenados = quickSortPontuacao([...alunosEmbaralhados]);
+            break;
+          default:
+            alunosOrdenados = alunosEmbaralhados;
+        }
       
       return alunosOrdenados;
     };
 
-    // ========== ALGORITMO ZIG-ZAG ==========
+    // ========== ALGORITMO ZIG-ZAG ATUALIZADO (OPÇÃO 1) ==========
 
     const aplicarZigZag = (alunosOrdenados) => {
       const totalAlunos = alunosOrdenados.length;
@@ -437,11 +439,29 @@ export default {
       // Inicializa grupos vazios
       const gruposFormados = Array.from({ length: numeroGrupos }, () => []);
       
-      // Distribui alunos em zig-zag
+      // Distribui alunos em zig-zag RESPEITANDO O LIMITE
       let grupoAtual = 0;
       let direcao = 1; // 1 para frente, -1 para trás
       
       for (let i = 0; i < totalAlunos; i++) {
+        // NOVO: Verifica se o grupo atual já está cheio
+        while (gruposFormados[grupoAtual].length >= tamanhoGrupo) {
+          // Se estiver cheio, move para o próximo grupo disponível
+          if (direcao === 1) {
+            grupoAtual++;
+            if (grupoAtual >= numeroGrupos) {
+              grupoAtual = numeroGrupos - 1;
+              direcao = -1;
+            }
+          } else {
+            grupoAtual--;
+            if (grupoAtual < 0) {
+              grupoAtual = 0;
+              direcao = 1;
+            }
+          }
+        }
+        
         gruposFormados[grupoAtual].push(alunosOrdenados[i]);
         
         // Muda de grupo
@@ -468,20 +488,12 @@ export default {
     const organizarGrupos = () => {
       if (alunos.value.length === 0) return;
       
-      // IMPORTANTE: Sempre limpa os líderes ao reorganizar
-      // Isso garante que toda vez que clicar em "Organizar Grupos" será uma nova organização
       lideres.value = {};
       
-      // Passo 1: Ordenar alunos por pontuação usando o algoritmo selecionado
       const alunosOrdenados = ordenarPorPontuacao();
-      
-      // Passo 2: Aplicar Zig-Zag
       const gruposZigZag = aplicarZigZag(alunosOrdenados);
       
-      // Passo 3: Atualizar grupos (SEMPRE sobrescreve o que tinha antes)
       grupos.value = gruposZigZag;
-      
-      // Passo 4: Marca como não salvo
       organizacaoSalva.value = false;
       
       console.log('✓ Grupos reorganizados com sucesso! Total de grupos:', grupos.value.length);
@@ -492,12 +504,11 @@ export default {
     const getNomeAlgoritmo = () => {
       const nomes = {
         bubble: 'Bubble Sort',
-        quick: 'Quick Sort',
-        merge: 'Merge Sort',
-        insertion: 'Insertion Sort'
+        selection: 'Selection Sort',
+        quick: 'Quick Sort'
       };
       return nomes[algoritmoSelecionado.value];
-    };
+};
 
     const getIniciais = (nome) => {
       if (!nome) return '??';
@@ -531,7 +542,6 @@ export default {
         const response = await axios.post(`${API_URL}/organizacoes`, organizacao);
 
         if (response.data.success) {
-          // NOVO: Marca como salvo
           organizacaoSalva.value = true;
           
           mensagemSucesso.value = 'Organização salva com sucesso!';
@@ -546,16 +556,9 @@ export default {
       }
     };
 
-    // const exportarPDF = () => {
-    //   alert('Funcionalidade de exportação em desenvolvimento');
-    // };
-
     const reorganizar = () => {
-      // Limpa o flag de organização salva
       organizacaoSalva.value = false;
-      
-      // Reorganiza os grupos
-      organizarGrupos();
+      //organizarGrupos();
     };
 
     const voltarParaSalas = () => {
@@ -564,7 +567,6 @@ export default {
 
     const definirLider = (grupoIndex, alunoId) => {
       lideres.value[grupoIndex] = alunoId;
-      // NOVO: Marca como não salvo ao alterar líder
       organizacaoSalva.value = false;
     };
 
@@ -591,7 +593,7 @@ export default {
                 }
                 return {
                   id: alunoId,
-                  nome_aluno: 'Aluno não encontrado',
+                  nome_aluno: 'Estudante excluído',
                   pontuacao: 0
                 };
               });
@@ -602,7 +604,6 @@ export default {
             });
             grupos.value = novosGrupos;
             lideres.value = novosLideres;
-            // NOVO: Marca como salvo pois veio do banco
             organizacaoSalva.value = true;
           }
         }
@@ -642,12 +643,15 @@ export default {
           }
         }
         
-        // NOVO: Marca como não salvo após exclusão
         if (grupos.value.length > 0) {
           organizacaoSalva.value = false;
         }
         
-        alert('Aluno removido com sucesso!');
+        mensagemSucesso.value = 'Estudante excluido!!';
+        mostrarMensagemExclusao.value = true;
+        setTimeout(() => {
+          mostrarMensagemExclusao.value = false;
+        }, 3000);
         cancelarExclusao();
       } catch (error) {
         console.error('Erro ao excluir aluno:', error);
@@ -673,7 +677,6 @@ export default {
       getNomeAlgoritmo,
       getIniciais,
       salvarOrganizacao,
-      //exportarPDF,
       reorganizar,
       voltarParaSalas,
       lideres,
@@ -688,7 +691,8 @@ export default {
       calcularPontuacaoMedia,
       mostrarMensagemSucesso,
       mensagemSucesso,
-      organizacaoSalva // NOVO: Exporta para o template
+      mostrarMensagemExclusao,
+      organizacaoSalva
     };
   }
 };
@@ -738,7 +742,7 @@ export default {
 }
 
 .badge-alunos {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #2d009f 100%);
   color: white;
   padding: 4px 12px;
   border-radius: 15px;
@@ -767,16 +771,16 @@ export default {
 }
 
 .btn-voltar:hover {
-  background: #5a6268;
+  background: #07cdff;
 }
 
 .btn-salvar {
-  background: #28a745;
+  background: #00136f;
   color: white;
 }
 
 .btn-salvar:hover:not(:disabled) {
-  background: #218838;
+  background: #07cdff;
 }
 
 .btn-exportar {
@@ -789,12 +793,12 @@ export default {
 }
 
 .btn-reorganizar {
-  background: #ffc107;
-  color: #333;
+  background: #07cdff;
+  color: #ffffff;
 }
 
 .btn-reorganizar:hover:not(:disabled) {
-  background: #e0a800;
+  background: #00136f;
 }
 
 .config-section {
@@ -837,7 +841,7 @@ export default {
 .btn-gerar {
   flex-shrink: 0;
   padding: 8px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #2d009f 100%);
   color: white;
   border: none;
   border-radius: 6px;
@@ -875,7 +879,6 @@ export default {
   color: #666 !important;
 }
 
-/* NOVO: Estilo para aviso de não salvo */
 .aviso-nao-salvo {
   background: #fff3cd;
   color: #856404 !important;
@@ -886,7 +889,6 @@ export default {
   font-weight: 600 !important;
 }
 
-/* NOVO: Estilo para aviso de salvo */
 .aviso-salvo {
   background: #d4edda;
   color: #155724 !important;
@@ -1025,11 +1027,11 @@ export default {
   background: #e9ecef;
   color: #6c757d;
   border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  border-radius: 39%;
+  width: 46px;
+  height: 25px;
   padding: 0;
-  font-size: 12px;
+  font-size: 9px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -1194,14 +1196,17 @@ export default {
 .info-organizacao {
   margin-bottom: 15px;
   padding: 10px;
-  background: #d4edda;
-  border-left: 4px solid #28a745;
+  /* background: #d4edda; */
+   /* background: #e2d4ed; */
+  border-left: 4px solid #28a745; 
+  
   border-radius: 6px;
 }
 
 .info-organizacao p {
   margin: 5px 0;
-  color: #155724;
+   color: #155724;  
+  
   font-size: 14px;
 }
 
@@ -1340,6 +1345,21 @@ export default {
   animation: slideIn 0.3s ease-out;
 }
 
+.mensagem-sucesso-exclusao {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #9a1700;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  font-weight: 600;
+  font-size: 14px;
+  z-index: 2000;
+  animation: slideIn 0.3s ease-out;
+}
+
 @keyframes slideIn {
   from {
     transform: translateX(400px);
@@ -1352,7 +1372,8 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .mensagem-sucesso {
+  .mensagem-sucesso,
+  .mensagem-sucesso-exclusao {
     right: 10px;
     left: 10px;
     text-align: center;

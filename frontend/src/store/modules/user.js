@@ -11,12 +11,12 @@ const getters = {};
 
 const mutations = {
   AUTHENTICATION(state, payload) {
-    state.id = payload.id;
-    state.name = payload.username || payload.name;
-    state.username = payload.username;
-    state.email = payload.email;
-    state.isLoggedIn = true;
-  },
+  state.id = payload.id;
+  state.name = payload.nome || payload.username || payload.name;  // ← Aceita todos
+  state.username = payload.nome || payload.username;  // ← Compatibilidade
+  state.email = payload.email;
+  state.isLoggedIn = true;
+},
 
   LOG_OUT(state) {
     state.id = null;

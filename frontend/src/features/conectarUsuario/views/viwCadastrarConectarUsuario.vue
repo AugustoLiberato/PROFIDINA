@@ -7,7 +7,7 @@
             <h1>{{ cadastroStep === 1 ? 'Cadastrar' : 'Confirmar Email' }}</h1>
           </div>
 
-          <div v-if="type === 'cpoCadastroUsuario'" class='label-float'>
+          <div v-if="type === 'cpoCadastroUsuario' &&  cadastroStep === 1" class='label-float'>
             <p> 
               <router-link to="/">Voltar</router-link>
             </p>
@@ -39,8 +39,8 @@
 
             <div class='label-float'>
               <input type='text' name="email" placeholder='' v-model="email" 
-               pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-    title="Digite um e-mail válido (deve conter @ e domínio)"
+              pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+              title="Digite um e-mail válido (deve conter @ e domínio)"
               required
               />
               <label for='email'>Email</label>
@@ -341,7 +341,7 @@ export default {
               }
               enviarCodigoVerificacao();
             } else {
-              console.warn("⚠️ Campos faltando");
+              console.warn(" Campos faltando");
             }
           } else if (cadastroStep.value === 2) {
             if (!verificationCode.value || verificationCode.value.length < 4) {

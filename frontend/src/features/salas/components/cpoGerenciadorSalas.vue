@@ -3,7 +3,7 @@
     <div class="header">
       <h2>Minhas Salas</h2>
       <button @click="mostrarFormCriar = !mostrarFormCriar" class="btn-primary">
-        {{ mostrarFormCriar ? 'Cancelar' : '+ Nova Sala' }}
+        {{ mostrarFormCriar ? 'Cancelar' : 'Criar Sala' }}
       </button>
     </div>
 
@@ -55,8 +55,8 @@
         <div class="sala-header">
           <h3>{{ sala.nome }}</h3>
           <div class="sala-actions">
-            <button @click="editarSala(sala)" class="btn-edit">✏️</button>
-            <button @click="confirmarExclusao(sala)" class="btn-delete">🗑️</button>
+            <button @click="editarSala(sala)" class="btn-edit">Editar</button>
+            <button @click="confirmarExclusao(sala)" class="btn-delete">Excluir</button>
           </div>
         </div>
         
@@ -66,7 +66,7 @@
           <div class="codigo-sala">
             <strong>Código:</strong> 
             <span class="codigo">{{ sala.codigo_sala }}</span>
-            <button @click="copiarCodigo(sala.codigo_sala)" class="btn-copy">📋</button>
+            <button @click="copiarCodigo(sala.codigo_sala)" class="btn-copy">Copiar</button>
           </div>
           
           <div class="alunos-count">
@@ -83,7 +83,7 @@
             Entrar na sala
           </button>
           <button @click="gerarQRCode(sala)" class="btn-secondary">
-            QR Code
+            Gerar Acesso 
           </button>
         </div>
       </div>
@@ -136,7 +136,7 @@
             Cancelar
           </button>
           <button type="button" @click="executarExclusao" class="btn-delete-confirm">
-            Sim, Excluir
+            Confirmar
           </button>
         </div>
       </div>
@@ -150,7 +150,10 @@
         <div class="qr-container">
           <canvas ref="qrCanvas"></canvas>
         </div>
-        <p class="qr-link">{{ urlParaQRCode }}</p>
+          <p>
+            URL
+          <p class="qr-link">{{ urlParaQRCode }}</p> 
+        </p>
         <div class="modal-actions">
           <button type="button" @click="salaQRCode = null" class="btn-primary">
             Fechar
@@ -323,9 +326,7 @@ export default {
       salaQRCode.value = sala;
     };
 
-    // Observa a variável salaQRCode. Quando ela for preenchida,
-    // espera o DOM atualizar (nextTick) e então desenha o QR Code.
-    // ALTERAÇÃO: width reduzido de 250 para 180
+   
     watch(salaQRCode, (novaSala) => {
       if (novaSala) {
         nextTick(() => {
@@ -333,7 +334,7 @@ export default {
             QRCode.toCanvas(
               qrCanvas.value, 
               urlParaQRCode.value, 
-              { width: 180, margin: 2 }, // TAMANHO REDUZIDO AQUI
+              { width: 180, margin: 2 }, 
               (error) => {
                 if (error) console.error(error);
               }
@@ -636,7 +637,7 @@ $white: #fff;
 
 .modal-overlay {
   position: fixed;
-  top: 0;
+  top: 1;
   left: 0;
   right: 0;
   bottom: 0;
@@ -674,17 +675,17 @@ $white: #fff;
 /* Estilos para o Modal QR Code - TAMANHO REDUZIDO */
 .modal-qr {
   text-align: center;
-  max-width: 900px;
+  max-width: 1000px;
   margin-top: -150px; /* Move o modal para cima */
 
   p {
     color: $dark;
-    margin-bottom: 10px;
+    margin-bottom: -1px;
     font-size: 20px;
   }
 
   .qr-container {
-    padding: 20px;
+    padding: 10px;
     background: $light;
     border-radius: 50px;
     display: inline-block;

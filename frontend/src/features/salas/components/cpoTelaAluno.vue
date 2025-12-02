@@ -1,8 +1,13 @@
 <template>
   <div class="entrada-aluno-container">
     <div class="form-card">
+      <!-- Mensagem de sucesso/erro - MOVIDA PARA O TOPO -->
+      <div v-if="mensagem" :class="['mensagem-topo', tipoMensagem]">
+        {{ mensagem }}
+      </div>
+
       <div class="header-card">
-        <h1>📚 Entrar na Sala</h1>
+        <h1> Ingressar na Sala</h1>
         <p>Preencha seus dados para entrar na sala</p>
       </div>
 
@@ -23,7 +28,7 @@
         </div>
 
         <div class="form-group">
-          <label>Seu Nome Completo *</label>
+          <label> Nome e Sobrenome *</label>
           <input 
             type="text" 
             v-model="formulario.nome_aluno" 
@@ -50,13 +55,13 @@
           class="btn-primary"
           :disabled="!formulario.codigo_sala || !formulario.nome_aluno || !formulario.rgm"
         >
-          Continuar →
+          Continuar
         </button>
       </div>
 
       <!-- Etapa 2: Questionário de Perfil -->
       <div v-if="etapa === 2" class="form-content">
-        <h3>📋 Questionário de Perfil</h3>
+        <h3> Questionário de Perfil</h3>
         <p class="subtitle">
            NÃO HÁ OBRIGATORIEDADE DE RESPOSTA, DEIXE EM BRANCO CASO VOCÊ NÃO SE ENCAIXE EM NENHUMA DAS ALTERNATIVAS.
         </p>
@@ -167,26 +172,21 @@
         </div>
 
         <div class="info-pontuacao">
-          <p>💡 Quanto mais respostas, maior a sua pontuação para formação de grupos equilibrados</p>
+          <p> Quanto mais respostas, maior a sua pontuação para formação de grupos equilibrados</p>
         </div>
 
         <div class="button-group">
           <button @click="voltarEtapa" class="btn-secondary">
-            ← Voltar
+            Voltar
           </button>
           <button 
             @click="entrarNaSala" 
             class="btn-primary"
             :disabled="carregando"
           >
-            {{ carregando ? '⏳ Entrando...' : '✓ Entrar na Sala' }}
+            {{ carregando ? ' Entrando...' : ' Enviar informações' }}
           </button>
         </div>
-      </div>
-
-      <!-- Mensagem de sucesso/erro -->
-      <div v-if="mensagem" :class="['mensagem', tipoMensagem]">
-        {{ mensagem }}
       </div>
     </div>
   </div>
@@ -234,6 +234,15 @@ export default {
     const mostrarMensagem = (texto, tipo = 'success') => {
       mensagem.value = texto;
       tipoMensagem.value = tipo;
+      
+      // Rolar para o topo do card para ver a mensagem
+      setTimeout(() => {
+        const formCard = document.querySelector('.form-card');
+        if (formCard) {
+          formCard.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 100);
+      
       setTimeout(() => {
         mensagem.value = '';
       }, 5000);
@@ -276,7 +285,7 @@ export default {
 
         if (response.data.success) {
           mostrarMensagem(
-            `✓ Bem-vindo à sala "${response.data.sala_nome}"! Aguarde o professor organizar os grupos.`,
+            ` Você ingressou em: "${response.data.sala_nome}"!.`,
             'success'
           );
           
@@ -328,7 +337,7 @@ export default {
 <style scoped>
 .entrada-aluno-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #4e4ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -344,10 +353,45 @@ export default {
   max-height: 90vh;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* MENSAGEM NO TOPO - FIXADA */
+.mensagem-topo {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 15px 20px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 16px;
+  animation: slideDown 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.mensagem-topo.success {
+  background: #4caf50;
+  color: white;
+}
+
+.mensagem-topo.error {
+  background: #f44336;
+  color: white;
 }
 
 .header-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #2d009f 100%);
   color: white;
   padding: 40px 30px;
   text-align: center;
@@ -480,7 +524,7 @@ export default {
 
 .option-card.selected {
   border-color: #667eea;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #2d009f 100%);
   color: white;
 }
 
@@ -547,7 +591,7 @@ export default {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #2d009f 100%);
   color: white;
 }
 
@@ -571,26 +615,6 @@ export default {
 .btn-secondary:hover {
   background: #667eea;
   color: white;
-}
-
-.mensagem {
-  margin: 20px 30px;
-  padding: 15px 20px;
-  border-radius: 8px;
-  text-align: center;
-  font-weight: 500;
-}
-
-.mensagem.success {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.mensagem.error {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
 }
 
 @media (max-width: 768px) {
@@ -619,3 +643,4 @@ export default {
   }
 }
 </style>
+
